@@ -4,6 +4,7 @@ import { createThemedStyles } from '@/utils/themed-styles';
 import { ChoiceGroup } from './ChoiceGroup';
 import { ChoicePill } from './ChoicePill';
 import { DURATIONS, EMPTY_FILTERS, OCCASIONS, toggleValue, type ChantFilters, type CategoryOption, type DurationFilter, type LanguageOption, type MoodOption } from './filters';
+import { useTheme } from '@/hooks/use-theme';
 
 export interface FilterSheetProps {
   visible: boolean;
@@ -41,16 +42,16 @@ const styles = createThemedStyles({
   closeButton: {
     width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5E5',
   },
   mediaRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12,
-    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#FFFFFF',
+    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5E5',
   },
   mediaLabel: { color: '#0A1F44', fontSize: 13, fontWeight: '600' },
   applyButton: {
-    minHeight: 52, alignItems: 'center', justifyContent: 'center', marginTop: 24, borderRadius: 16, backgroundColor: '#0A1F44',
+    minHeight: 52, alignItems: 'center', justifyContent: 'center', marginTop: 24, borderRadius: 16, backgroundColor: '#7A1F3D',
   },
   applyLabel: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', letterSpacing: 0.2 },
 });
@@ -61,6 +62,7 @@ export function FilterSheet({
   showSeasons = false, showMedia = false, showDurations = true, showOccasions = true, showDownloaded = true,
   applyLabel = 'Afficher',
 }: FilterSheetProps) {
+  const theme = useTheme();
   const toggleCategory = (value: string) =>
     onChange({ ...filters, categories: toggleValue(filters.categories, value) });
   const toggleLanguage = (value: string) =>
@@ -86,7 +88,7 @@ export function FilterSheet({
           <View style={styles.sheetHeader}>
             <Text style={styles.sheetTitle}>Filtrer</Text>
             <Pressable onPress={onDismiss} style={styles.closeButton} hitSlop={8}>
-              <MaterialCommunityIcons name="close" size={20} color="#0A1F44" />
+              <MaterialCommunityIcons name="close" size={20} color={theme.textSecondary} />
             </Pressable>
           </View>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingBottom: 12 }}>
@@ -146,7 +148,7 @@ export function FilterSheet({
                     <MaterialCommunityIcons
                       name={filters.audioOnly ? 'volume-high' : 'volume-off'}
                       size={18}
-                      color={filters.audioOnly ? '#7A1F3D' : '#0A1F44'}
+                      color={filters.audioOnly ? '#7A1F3D' : theme.textSecondary}
                     />
                     <Text style={[styles.mediaLabel, filters.audioOnly && { color: '#7A1F3D', fontWeight: '800' }]}>
                       Audio uniquement
@@ -158,7 +160,7 @@ export function FilterSheet({
                     <MaterialCommunityIcons
                       name="text"
                       size={18}
-                      color={filters.lyricsOnly ? '#7A1F3D' : '#0A1F44'}
+                      color={filters.lyricsOnly ? '#7A1F3D' : theme.textSecondary}
                     />
                     <Text style={[styles.mediaLabel, filters.lyricsOnly && { color: '#7A1F3D', fontWeight: '800' }]}>
                       Avec paroles
@@ -170,7 +172,7 @@ export function FilterSheet({
                     <MaterialCommunityIcons
                       name={filters.partitionOnly ? 'file-music' : 'file-music-outline'}
                       size={18}
-                      color={filters.partitionOnly ? '#7A1F3D' : '#0A1F44'}
+                      color={filters.partitionOnly ? '#7A1F3D' : theme.textSecondary}
                     />
                     <Text style={[styles.mediaLabel, filters.partitionOnly && { color: '#7A1F3D', fontWeight: '800' }]}>
                       Partition disponible
@@ -220,4 +222,3 @@ export function FilterSheet({
     </Modal>
   );
 }
-

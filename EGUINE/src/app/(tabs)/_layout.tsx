@@ -32,7 +32,7 @@ export default function TabLayout() {
           return <SymbolView name={iconName as any} size={size} tintColor={color} />;
         },
         tabBarActiveTintColor: '#7A1F3D',
-        tabBarInactiveTintColor: '#0A1F44',
+        tabBarInactiveTintColor: '#333333',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#FFFFFF',
@@ -68,15 +68,15 @@ function KotlinTabBar({ state, descriptors, navigation }: any) {
   };
 
   return (
-    <View style={[styles.barShell, { paddingBottom: insets.bottom, backgroundColor: isDark ? '#0A1F44' : '#FFFFFF' }]}>
+    <View style={[styles.barShell, { paddingBottom: insets.bottom, backgroundColor: isDark ? '#000000' : '#FFFFFF' }]}>
       <MiniPlayer isDark={isDark} />
       {showTabBar && routes.length > 0 && (
-        <View style={[styles.navBar, { backgroundColor: isDark ? '#0A1F44' : '#FFFFFF', borderTopColor: isDark ? '#FFFFFF' : '#0A1F44' }]}>
+        <View style={[styles.navBar, { backgroundColor: isDark ? '#000000' : '#FFFFFF', borderTopColor: isDark ? '#2B2B2B' : '#E5E5E5' }]}>
           {routes.map((route: any) => {
             const routeIndex = state.routes.findIndex((item: any) => item.key === route.key);
             const selected = state.index === routeIndex;
             const tabName = normalizeTabRoute(route.name);
-            const color = selected ? '#7A1F3D' : isDark ? '#FFFFFF' : '#0A1F44';
+            const color = selected ? '#7A1F3D' : isDark ? '#B8B8B8' : '#333333';
             const label = descriptors[route.key]?.options?.title ?? tabName;
             return (
               <Pressable
@@ -124,21 +124,21 @@ function MiniPlayer({ isDark }: { isDark: boolean }) {
   if (!chant) return null;
 
   return (
-    <View style={[styles.player, { backgroundColor: isDark ? '#0A1F44' : '#FFFFFF', borderColor: isDark ? '#FFFFFF' : '#0A1F44' }]}>
+    <View style={[styles.player, { backgroundColor: isDark ? '#111111' : '#FFFFFF', borderColor: isDark ? '#2B2B2B' : '#E5E5E5' }]}>
       <View style={styles.playerProgress} />
       <View style={styles.playerContent}>
         <View style={styles.playerArtwork}>
           <Text style={styles.playerArtworkLetter}>{chant.titre.slice(0, 1).toLocaleUpperCase()}</Text>
         </View>
         <View style={styles.playerCopy}>
-          <Text numberOfLines={1} style={[styles.playerTitle, { color: isDark ? '#FFFFFF' : '#0A1F44' }]}>{chant.titre}</Text>
-          <Text numberOfLines={1} style={[styles.playerCategory, { color: isDark ? '#FFFFFF' : '#0A1F44' }]}>{chant.categorie.replaceAll('_', ' ')}</Text>
+          <Text numberOfLines={1} style={[styles.playerTitle, { color: isDark ? '#F5F5F5' : '#000000' }]}>{chant.titre}</Text>
+          <Text numberOfLines={1} style={[styles.playerCategory, { color: isDark ? '#B8B8B8' : '#4A4A4A' }]}>{chant.categorie.replaceAll('_', ' ')}</Text>
         </View>
         <Pressable accessibilityRole="button" accessibilityLabel={isPlaying ? 'Pause' : 'Lecture'} onPress={togglePlay} style={styles.playerAction}>
           <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={22} color={ActionColors.playback} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer le lecteur" onPress={stopPlayer} style={styles.playerAction}>
-          <MaterialCommunityIcons name="close" size={20} color={isDark ? '#FFFFFF' : '#0A1F44'} />
+          <MaterialCommunityIcons name="close" size={20} color={isDark ? '#B8B8B8' : '#333333'} />
         </Pressable>
       </View>
     </View>
@@ -147,16 +147,16 @@ function MiniPlayer({ isDark }: { isDark: boolean }) {
 
 const styles = createThemedStyles({
   barShell: { backgroundColor: '#FFFFFF' },
-  navBar: { height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingBottom: 4, paddingTop: 4, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#0A1F44', backgroundColor: '#FFFFFF' },
+  navBar: { height: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingBottom: 4, paddingTop: 4, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E5E5', backgroundColor: '#FFFFFF' },
   tabItem: { flex: 1, height: '100%', alignItems: 'center', justifyContent: 'center', gap: 3 },
   tabLabel: { fontSize: 10, fontWeight: '600' },
-  player: { height: 64, marginHorizontal: 8, marginTop: 4, marginBottom: 4, overflow: 'hidden', borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#FFFFFF' },
+  player: { height: 64, marginHorizontal: 8, marginTop: 4, marginBottom: 4, overflow: 'hidden', borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E5E5' },
   playerProgress: { height: 2, backgroundColor: ActionColors.playback },
   playerContent: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 },
   playerArtwork: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: ActionColors.playbackSoft },
   playerArtworkLetter: { color: ActionColors.playback, fontSize: 16, fontWeight: '700' },
   playerCopy: { flex: 1, marginLeft: 12, gap: 2 },
-  playerTitle: { color: '#0A1F44', fontSize: 14, fontWeight: '700' },
-  playerCategory: { color: '#0A1F44', fontSize: 12, textTransform: 'capitalize' },
+  playerTitle: { color: '#000000', fontSize: 14, fontWeight: '700' },
+  playerCategory: { color: '#4A4A4A', fontSize: 12, textTransform: 'capitalize' },
   playerAction: { width: 38, height: 42, alignItems: 'center', justifyContent: 'center' },
 });

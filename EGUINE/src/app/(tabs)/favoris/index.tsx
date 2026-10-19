@@ -10,7 +10,7 @@ import { useAppStore } from '@/store/useAppStore';
 import type { Langue } from '@/types';
 import { ActionColors } from '@/constants/theme';
 
-const COLORS = { background: '#FFFFFF', card: '#FFFFFF', gold: ActionColors.primary, rose: ActionColors.primary, text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF' };
+const COLORS = { background: '#FFFFFF', card: '#FFFFFF', gold: ActionColors.primary, rose: ActionColors.primary, text: '#0A1F44', muted: '#0A1F44', border: '#E5E5E5' };
 
 type ContentType = 'all' | 'chants' | 'prieres' | 'lectures';
 type FavMood = 'joyeux' | 'priere' | 'meditatif' | 'dynamique' | 'paisible' | 'solennel';
@@ -85,7 +85,7 @@ function normalizeLabel(value: string): string {
 }
 
 export default function FavorisScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const chants = useAppStore((state) => state.chants);
   const prieres = useAppStore((state) => state.prieres);
@@ -181,14 +181,14 @@ export default function FavorisScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={21} color={COLORS.text} />
+          <MaterialCommunityIcons name="arrow-left" size={21} color={theme.textSecondary} />
         </Pressable>
         <Text style={styles.topTitle}>Chants favoris</Text>
         <Pressable accessibilityRole="button" accessibilityLabel={`Trier : ${SORT_OPTIONS.find((option) => option.id === sort)?.label}`} onPress={() => setSortVisible(true)} style={styles.topAction}>
-          <MaterialCommunityIcons name="sort-variant" size={21} color={COLORS.text} />
+          <MaterialCommunityIcons name="sort-variant" size={21} color={theme.textSecondary} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Filtrer" onPress={() => { setDraftFilters(filters); setFilterVisible(true); }} style={styles.topAction}>
-          <MaterialCommunityIcons name="tune-variant" size={21} color={activeFilterCount > 0 ? ActionColors.discovery : COLORS.text} />
+          <MaterialCommunityIcons name="tune-variant" size={21} color={activeFilterCount > 0 ? ActionColors.discovery : theme.text} />
           {activeFilterCount > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{activeFilterCount}</Text></View>}
         </Pressable>
       </View>
@@ -196,7 +196,7 @@ export default function FavorisScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.statsHeader}>
           <View style={styles.statsIcon}>
-            <MaterialCommunityIcons name="heart" size={22} color={COLORS.text} />
+            <MaterialCommunityIcons name="heart" size={22} color={theme.textSecondary} />
           </View>
           <View style={styles.statsCopy}>
             <Text style={styles.statsTitle}>Mes chants favoris</Text>
@@ -207,14 +207,14 @@ export default function FavorisScreen() {
         <View style={styles.searchBox}>
           <MaterialCommunityIcons name="magnify" size={20} color={ActionColors.discovery} />
           <TextInput accessibilityLabel="Rechercher un chant favori" value={query} onChangeText={setQuery} placeholder="Rechercher un chant…" placeholderTextColor={COLORS.muted} style={styles.searchInput} />
-          {query.length > 0 && <Pressable accessibilityRole="button" accessibilityLabel="Effacer la recherche" onPress={() => setQuery('')}><MaterialCommunityIcons name="close-circle" size={19} color={COLORS.muted} /></Pressable>}
+          {query.length > 0 && <Pressable accessibilityRole="button" accessibilityLabel="Effacer la recherche" onPress={() => setQuery('')}><MaterialCommunityIcons name="close-circle" size={19} color={theme.textSecondary} /></Pressable>}
         </View>
 
         <ActiveFilters filters={filters} onChange={setFilters} />
 
         {filtered.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="heart-outline" size={56} color="#0A1F4480" />
+            <MaterialCommunityIcons name="heart-outline" size={56} color={theme.textSecondary} />
             <Text style={styles.emptyText}>
               {query.trim() ? `Aucun résultat pour « ${query.trim()} »` : activeFilterCount > 0 ? 'Aucun chant favori ne correspond aux filtres' : 'Aucun chant favori pour le moment'}
             </Text>
@@ -287,11 +287,12 @@ export default function FavorisScreen() {
 }
 
 function FavoriteRow({ entry, onOpen, onRemove }: { entry: FavoriteEntry; onOpen: () => void; onRemove: () => void }) {
+  const theme = useTheme();
   return (
     <View style={styles.favoriteRow}>
       <Pressable onPress={onOpen} style={styles.rowMain}>
         <View style={styles.rowArtwork}>
-          <MaterialCommunityIcons name={entry.isPriere ? 'hands-pray' : 'music-note'} size={21} color="#0A1F44" />
+          <MaterialCommunityIcons name={entry.isPriere ? 'hands-pray' : 'music-note'} size={21} color={theme.textSecondary} />
         </View>
         <View style={styles.rowCopy}>
           <Text numberOfLines={1} style={styles.rowTitle}>{entry.title}</Text>
@@ -306,6 +307,7 @@ function FavoriteRow({ entry, onOpen, onRemove }: { entry: FavoriteEntry; onOpen
 }
 
 function ActiveFilters({ filters, onChange }: { filters: FavoriteFilters; onChange: (filters: FavoriteFilters) => void }) {
+  const theme = useTheme();
   const chips = [
     ...filters.categories.map((value) => ({ key: `category:${value}`, label: value, remove: () => onChange({ ...filters, categories: filters.categories.filter((item) => item !== value) }) })),
     ...filters.languages.map((value) => ({ key: `language:${value}`, label: value, remove: () => onChange({ ...filters, languages: filters.languages.filter((item) => item !== value) }) })),
@@ -318,7 +320,7 @@ function ActiveFilters({ filters, onChange }: { filters: FavoriteFilters; onChan
   if (chips.length === 0) return null;
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.activeChips}>
-      {chips.map((chip) => <Pressable key={chip.key} onPress={chip.remove} style={styles.activeChip}><Text style={styles.activeChipLabel}>{chip.label}</Text><MaterialCommunityIcons name="close" size={14} color={COLORS.text} /></Pressable>)}
+      {chips.map((chip) => <Pressable key={chip.key} onPress={chip.remove} style={styles.activeChip}><Text style={styles.activeChipLabel}>{chip.label}</Text><MaterialCommunityIcons name="close" size={14} color={theme.textSecondary} /></Pressable>)}
       <Pressable onPress={() => onChange(EMPTY_FILTERS)} style={styles.clearAll}><Text style={styles.clearAllLabel}>Effacer tout</Text></Pressable>
     </ScrollView>
   );
@@ -341,7 +343,7 @@ const styles = createThemedStyles({
   badge: { position: 'absolute', top: 3, right: 0, width: 16, height: 16, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: COLORS.gold },
   badgeText: { color: COLORS.background, fontSize: 9, fontWeight: '800' },
   content: { gap: 12, paddingBottom: 34 },
-  statsHeader: { height: 80, flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginTop: 8, paddingHorizontal: 16, borderRadius: 14, backgroundColor: '#0A1F44' },
+  statsHeader: { height: 80, flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginTop: 8, paddingHorizontal: 16, borderRadius: 14, backgroundColor: '#7A1F3D' },
   statsIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: '#7A1F3D55' },
   statsCopy: { flex: 1, gap: 3 },
   statsTitle: { color: COLORS.text, fontSize: 16, fontWeight: '700' },
@@ -349,13 +351,13 @@ const styles = createThemedStyles({
   searchBox: { minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: 9, marginHorizontal: 16, paddingHorizontal: 12, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, backgroundColor: COLORS.card },
   searchInput: { flex: 1, minHeight: 42, color: COLORS.text, fontSize: 14 },
   activeChips: { gap: 6, paddingHorizontal: 16 },
-  activeChip: { minHeight: 31, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, borderRadius: 16, backgroundColor: '#0A1F44' },
+  activeChip: { minHeight: 31, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, borderRadius: 16, backgroundColor: '#7A1F3D' },
   activeChipLabel: { color: COLORS.text, fontSize: 11 },
   clearAll: { minHeight: 31, justifyContent: 'center', paddingHorizontal: 8 },
   clearAllLabel: { color: COLORS.gold, fontSize: 11, fontWeight: '700' },
   favoriteRow: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 16, paddingVertical: 9, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#0A1F44' },
   rowMain: { flex: 1, minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rowArtwork: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#0A1F4426' },
+  rowArtwork: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#F4E9ED' },
   rowCopy: { flex: 1, gap: 3 },
   rowTitle: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
   rowArtist: { color: COLORS.muted, fontSize: 12 },

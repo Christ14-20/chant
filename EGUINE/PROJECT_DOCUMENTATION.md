@@ -1,10 +1,10 @@
-# EGUINE — Documentation Complète du Projet
+# Cantique Guinée — Documentation Complète du Projet
 
-> **Projet** : EGUINE — Application de chants liturgiques (Guinée)
+> **Projet** : Cantique Guinée (nom technique du projet : EGUINE) — Application de chants liturgiques
 > **Stack** : React Native + Expo Router + Expo SDK 57
 > **Langage** : TypeScript
-> **État** : Produit fonctionnel, home page refontée UX/UI premium
-> **Dernière mise à jour** : 2026-09-09
+> **État** : Produit fonctionnel avec base SQLite locale, catalogue unifié, historique, recherche locale et préparation de Messe
+> **Dernière mise à jour** : 2026-10-19
 
 ---
 
@@ -14,71 +14,179 @@
 
 ```
 EGUINE/
-├── app.json                  # Config Expo (sdkVersion: "57.0.0")
-├── package.json              # Toutes les dépendances
+├── app.json                  # Config Expo et métadonnées de l’app
+├── app.config.*              # Fichiers de config exposés éventuels (non centralisés ici)
+├── package.json              # Dépendances, scripts de lancement et tests
 ├── babel.config.js           # Babel preset expo
-├── metro.config.js           # Metro config avec shims
-├── tsconfig.json             # TypeScript config (extends expo/tsconfig.base)
+├── metro.config.js           # Metro config avec shims web
+├── tsconfig.json             # TypeScript config
+├── scripts/
+│   └── chant-database.test.mjs # Tests SQLite / migrations / recherche locale
 ├── src/
-│   ├── app/                  # Pages Expo Router (routing file-based)
-│   │   ├── _layout.tsx       # Tab layout (4 tabs + routes cachées)
-│   │   ├── index.tsx         # Redirect selon isLoggedIn
-│   │   ├── connexion.tsx     # Page de connexion/signup/OTP
-│   │   ├── home.tsx          # Page d'accueil principale (refontée)
-│   │   ├── chants.tsx        # Liste des chants
-│   │   ├── prieres.tsx       # Liste des prières
-│   │   ├── messe.tsx         # Page messe
-│   │   ├── favoris.tsx       # Favoris
-│   │   ├── profile.tsx       # Profil
-│   │   ├── parametres.tsx    # Paramètres
-│   │   ├── notifications.tsx # Notifications
-│   │   ├── lecture.tsx       # Lecture biblique
-│   │   ├── chant/[id].tsx    # Détail d'un chant
-│   │   ├── chant/nouveau.tsx # Nouveau chant
-│   │   ├── priere/[id].tsx   # Détail d'une prière
-│   │   └── priere/nouvelle.tsx # Nouvelle prière
-│   ├── components/           # Composants réutilisables
-│   │   ├── themed-text.tsx   # Texte avec thème + fontSize
-│   │   ├── themed-view.tsx   # View avec thème
-│   │   ├── chant/ChantCard.tsx    # Carte chant
-│   │   ├── priere/PriereCard.tsx  # Carte prière
-│   │   ├── ui/SearchBar.tsx       # Barre de recherche
-│   │   ├── ui/collapsible.tsx     # Collapsible
-│   │   ├── animated-icon.tsx      # Icône animée
-│   │   ├── external-link.tsx      # Lien externe
-│   │   ├── hint-row.tsx           # Ligne d'indice
-│   │   ├── web-badge.tsx          # Badge web
-│   │   └── messe/                 # Composants messe
-│   ├── hooks/                # Hooks personnalisés
-│   │   ├── use-responsive.ts     # wp(), hp(), useResponsive()
-│   │   ├── use-theme.ts          # useTheme()
-│   │   ├── use-font-size.ts      # useFontSize()
-│   │   ├── use-color-scheme.ts   # Couleur système
-│   │   └── use-color-scheme.web.ts
-│   ├── store/                # Zustand store
-│   │   └── useAppStore.ts    # État global de l'app
-│   ├── data/                 # Contenu initial de la bibliothèque
-│   │   ├── initialChants.ts  # Agrégation du contenu initial importé dans SQLite
-│   │   └── songbookChants.ts # Chants autorisés du carnet Saint-Pothin (2013)
-│   ├── types/                # Types TypeScript
-│   │   ├── index.ts          # Tous les types (Chant, Priere, Lecture, Saint, Parish, etc.)
-│   │   └── css.d.ts
-│   ├── constants/            # Constantes
-│   │   └── theme.ts          # Colors, Fonts, Spacing
-│   ├── shims/                # Shims web
+│   ├── app/                  # Routing Expo Router
+│   │   ├── (tabs)/
+│   │   │   ├── _layout.tsx   # Tab bar custom avec mini-player
+│   │   │   ├── home/
+│   │   │   ├── chants/
+│   │   │   ├── messe/
+│   │   │   ├── favoris/
+│   │   │   └── parametres/
+│   │   ├── _layout.tsx       # Initialisation DB + Stack global
+│   │   ├── index.tsx         # Redirection d’entrée vers /home
+│   │   ├── connexion/
+│   │   ├── agenda/
+│   │   ├── aide/
+│   │   ├── historique/
+│   │   ├── mes-chants/
+│   │   ├── search/
+│   │   ├── saint/
+│   │   ├── chant/
+│   │   ├── priere/
+│   │   └── lecture/
+│   ├── components/
+│   │   ├── auth/
+│   │   ├── chant/
+│   │   ├── lecture/
+│   │   ├── notifications/
+│   │   ├── priere/
+│   │   ├── settings/
+│   │   ├── ui/
+│   │   └── themed-*.tsx      # View / Text génériques multi-thèmes
+│   ├── constants/
+│   │   └── theme.ts          # Palette ActionColors et tokens visuels
+│   ├── data/
+│   │   ├── initialChants.ts  # Données de base de catalogue
+│   │   └── songbookChants.ts # Références du carnet Saint-Pothin
+│   ├── database/
+│   │   ├── schema.ts          # Migrations, tables, index SQLite
+│   │   ├── chant-database.ts  # Opérations SQLite et recherche locale
+│   │   └── search-query.ts    # Construction SQL de recherche FTS/LIKE
+│   ├── hooks/
+│   │   ├── use-responsive.ts
+│   │   ├── use-theme.ts
+│   │   ├── use-font-size.ts
+│   │   ├── use-color-scheme.ts
+│   │   ├── use-local-chant-search.ts
+│   │   └── use-store-hydrated.ts
+│   ├── store/
+│   │   └── useAppStore.ts    # Store Zustand avec persistance AsyncStorage
+│   ├── utils/
+│   │   ├── celebration-order.ts, themed-styles.ts, navigation.ts
+│   │   ├── personal-chant-storage-core.ts
+│   │   └── chant-resource-import-core.ts
+│   ├── shims/
 │   │   ├── shims.ts
 │   │   ├── backhandler.web.js
 │   │   └── LoadingView.js
-│   └── global.css            # Styles globaux
+│   ├── types/
+│   │   ├── index.ts
+│   │   └── css.d.ts
+│   ├── global.css
+│   └── assets/
+│       └── images / expo icons / splash
 ```
 
 ### 1.2 Navigation
 
 - **Router** : Expo Router (file-based routing)
-- **Layout** : `_layout.tsx` utilise `<Tabs>` avec 4 tabs principaux
-- **Tabs** : Accueil, Chants, Prières, Réglages
-- **Routes cachées** (tabBarStyle: { display: 'none' }) : connexion, messe, favoris, notifications, lecture, profile, chant/[id], chant/nouveau, priere/[id], priere/nouvelle
-- **Redirect** : `index.tsx` redirige vers `/home` si connecté, `/connexion` sinon
+- **Layout principal** : `src/app/_layout.tsx` initialise la base locale et affiche un `<Stack>` global.
+- **Navigation tab** : `src/app/(tabs)/_layout.tsx` expose les 5 onglets principaux : Accueil, Chants, Messe, Favoris, Réglages.
+- **Routes cachées** : agenda, aide, historique, mes-chants, recherche, saint, lecture, profil, détail/édition de chants et prières.
+- **Redirection** : `src/app/index.tsx` renvoie vers `/home` comme route par défaut.
+- **Mini-player** : intégré dans la tab bar ; il affiche le chant courant, permet lecture/pause et fermeture rapide.
+
+### 1.3 Écrans et modules majeurs du projet
+
+- `src/app/(tabs)/home` : accueil, reprise d’activité, nouveautés, historique, préparation de messe.
+- `src/app/(tabs)/chants` : catalogue, filtres, catégories, langues, éléments de Messe, favoris et historique.
+- `src/app/(tabs)/messe` : préparation de célébration, parties liturgiques, ordre des chants, brouillons.
+- `src/app/(tabs)/favoris` : favoris de chants et prières, navigation rapide vers les contenus préférés.
+- `src/app/(tabs)/parametres` : paramètres de thème, langue, notifications, taille de police, stockage local.
+- `src/app/search` : recherche locale dans la bibliothèque SQLite avec pagination et historique des recherches.
+- `src/app/agenda` : agenda hebdomadaire avec filtres et ajout d’événements personnels.
+- `src/app/aide` : FAQ de l’application.
+- `src/app/mes-chants` : bibliothèque personnelle locale avec import audio/partition/PDF, contenus privés, gestion des ressources.
+- `src/app/historique` : historique des lectures, écoutes, préparations et récentes modifications.
+- `src/app/saint` : pages liées au saint du jour / spiritualité / références de lecture.
+
+---
+
+## 2. Stack Technique et Versions
+
+### 2.1 Expo SDK 57
+
+| Package | Version |
+|---------|---------|
+| `expo` | `~57.0.30` |
+| `react` | `19.2.3` |
+| `react-native` | `0.86.3` |
+| `react-native-web` | `^0.21.0` |
+| `babel-preset-expo` | `~57.0.10` |
+| `@types/react` | `~19.2.0` |
+| `typescript` | `~5.9.2` / `~6.0.3` |
+| `expo-router` | `~57.0.28` |
+| `expo-symbols` | `~57.0.3` |
+| `expo-linear-gradient` | `~57.0.2` |
+| `expo-haptics` | `~57.0.3` |
+| `expo-font` | `~57.0.3` |
+| `expo-image` | `~57.0.5` |
+| `expo-status-bar` | `~57.0.1` |
+| `expo-splash-screen` | `~57.0.10` |
+| `expo-web-browser` | `~57.0.3` |
+| `expo-constants` | `~57.0.17` |
+| `expo-device` | `~57.0.2` |
+| `expo-linking` | `~57.0.13` |
+| `expo-system-ui` | `~57.0.4` |
+| `expo-clipboard` | `~57.0.2` |
+| `expo-document-picker` | `~57.0.3` |
+| `expo-file-system` | `~57.0.7` |
+| `expo-audio` | `~57.0.5` |
+| `expo-image-picker` | `~57.0.20` |
+| `expo-sqlite` | `~57.0.4` |
+| `react-native-reanimated` | `4.5.1` |
+| `react-native-safe-area-context` | `~5.7.0` |
+| `react-native-screens` | `~4.26.0` |
+| `react-native-gesture-handler` | `~2.32.0` |
+| `@expo/vector-icons` | `^15.0.2` |
+| `zustand` | `^4.5.7` |
+
+### 2.2 Configuration fichiers
+
+**`app.json`** :
+```json
+{
+  "expo": {
+    "sdkVersion": "57.0.0",
+    "name": "Cantique Guinée",
+    "slug": "EGUINE",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/images/icon.png",
+    "scheme": "eguine",
+    "userInterfaceStyle": "light",
+    "ios": { "icon": "./assets/images/icon.png", "supportsTablet": true },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#7A1F3D",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": { "output": "static", "favicon": "./assets/images/favicon.png" },
+    "plugins": ["expo-router", ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 148 }], "expo-font", "expo-web-browser"]
+  }
+}
+```
+L’orientation suit celle de l’appareil (portrait ou paysage) et la cible iOS inclut les tablettes.
+Le nom affiché et les icônes de l’application utilisent la marque **Cantique Guinée**. Le slug technique `EGUINE` et le schéma de liens `eguine` restent inchangés afin de préserver l’identité de l’application et ses liens existants.
+
+**`tsconfig.json`** : extends `expo/tsconfig.base`, paths `@/*` → `./src/*`, `@/assets/*` → `./assets/*`
+
+**`babel.config.js`** : `['babel-preset-expo', { unstable_transformImportMeta: true }]`
+
+**`metro.config.js`** : `getDefaultConfig(__dirname)` + shims pour BackHandler et LoadingView
 
 ---
 
@@ -125,17 +233,17 @@ EGUINE/
 {
   "expo": {
     "sdkVersion": "57.0.0",
-    "name": "EGUINE",
+    "name": "Cantique Guinée",
     "slug": "EGUINE",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "eguine",
     "userInterfaceStyle": "light",
-    "ios": { "icon": "./assets/expo.icon.png" },
+    "ios": { "icon": "./assets/images/icon.png", "supportsTablet": true },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#7A1F3D",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -143,10 +251,12 @@ EGUINE/
       "predictiveBackGestureEnabled": false
     },
     "web": { "output": "static", "favicon": "./assets/images/favicon.png" },
-    "plugins": ["expo-router", ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }], "expo-font", "expo-web-browser"]
+    "plugins": ["expo-router", ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 148 }], "expo-font", "expo-web-browser"]
   }
 }
 ```
+L’orientation suit celle de l’appareil (portrait ou paysage) et la cible iOS inclut les tablettes.
+Le nom affiché et les icônes de l’application utilisent la marque **Cantique Guinée**. Le slug technique `EGUINE` et le schéma de liens `eguine` restent inchangés afin de préserver l’identité de l’application et ses liens existants.
 
 **`tsconfig.json`** : extends `expo/tsconfig.base`, paths `@/*` → `./src/*`, `@/assets/*` → `./assets/*`
 
@@ -189,6 +299,14 @@ EGUINE/
 - `toggleFavoritePriere(priereId)` → toggle dans favoritePrieres
 - `toggleDownload(chantId)` → toggle downloadedChants
 - `setSearchQuery(query)` → set searchQuery
+
+### 3.2 Initialisation locale & synchronisation SQLite
+
+- `src/app/_layout.tsx` déclenche l’hydratation Zustand, puis initialise `eguine.db` avec `initializeLocalChantDatabase`.
+- Les états déjà persistés dans `AsyncStorage` (favoris, célébrations, bibliothèque personnelle) sont réinjectés dans SQLite pour garantir une source de vérité cohérente hors connexion.
+- Les changements de favoris et de programme de Messe sont synchronisés vers SQLite via `replaceFavorites` et `replaceMassCelebrations`.
+- La recherche locale s’appuie sur `useLocalChantSearch`, qui exécute `searchChants` avec pagination et détection de chargement plus avancée. Elle prend en charge les filtres par langue, catégorie, moment liturgique, contenu audio/partition, favoris et bibliothèque personnelle.
+- Les écrans qui doivent être plus rapides ou plus volumiques ne filtrent plus l’ensemble complet en mémoire : ils interrogent directement SQLite avec `buildChantSearchQueries` et `FTS5` si disponible.
 
 ---
 
@@ -244,6 +362,26 @@ const SCALE = { small: 0.85, medium: 1, large: 1.15, xlarge: 1.3 };
 **Fichier** : `src/hooks/use-color-scheme.ts`
 
 **Export** : `useColorScheme()` → retourne le scheme système ('light' | 'dark')
+
+### 4.5 `use-local-chant-search.ts`
+
+**Fichier** : `src/hooks/use-local-chant-search.ts`
+
+**Responsabilité** :
+- Exécute une recherche locale paginée sur la base SQLite (`searchChants`)
+- Gère `debounce`, `loadMore`, `loadingMore`, `enabled` et messages d’erreur
+- Stream le résultat dans un état stable avec `useEffect` + `useRef`
+- S’aligne sur les filtres de `ChantSearchOptions` (langue, catégorie, moment, contenu audio/partition, favoris, etc.)
+
+**Sortie** : `{ items, total, loading, loadingMore, error, hasMore, loadMore }`
+
+### 4.6 `use-store-hydrated.ts`
+
+**Fichier** : `src/hooks/use-store-hydrated.ts`
+
+**Responsabilité** :
+- Attend que Zustand ait terminé de réhydrater le store persistant avant d’initialiser ou afficher les écrans dépendants du stockage local.
+- Evite les avancées dans l’interface avant la disponibilité du state `user`, `favorites`, `personalChants`, etc.
 
 ---
 

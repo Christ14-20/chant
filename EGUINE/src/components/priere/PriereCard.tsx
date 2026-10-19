@@ -17,8 +17,8 @@ const MOMENT_ICONS: Record<string, string> = {
 const MOMENT_COLORS: Record<string, string> = {
   matin: '#7A1F3D',
   midi: '#7A1F3D',
-  soir: '#0A1F44',
-  nuit: '#0A1F44',
+  soir: '#725A61',
+  nuit: '#725A61',
 };
 
 interface PriereCardProps {
@@ -34,7 +34,7 @@ export function PriereCard({ priere, onPress, onFavoritePress, isFavorite, style
   const theme = useTheme();
   const momentKey = priere.moment_jour || priere.categorie;
   const icon = MOMENT_ICONS[momentKey] || 'heart';
-  const color = MOMENT_COLORS[momentKey] || '#0A1F44';
+  const color = MOMENT_COLORS[momentKey] || theme.textSecondary;
 
   return (
     <Pressable
@@ -62,7 +62,7 @@ export function PriereCard({ priere, onPress, onFavoritePress, isFavorite, style
             <SymbolView
               name={isFavorite ? 'heart.fill' : 'heart'}
               size={20}
-              tintColor={isFavorite ? ActionColors.primary : '#0A1F44'}
+              tintColor={isFavorite ? ActionColors.primary : theme.textSecondary}
             />
           </Pressable>
         )}

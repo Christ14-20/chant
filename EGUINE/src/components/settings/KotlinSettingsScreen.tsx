@@ -12,7 +12,7 @@ import { goBackSafely } from '@/utils/navigation';
 import type { Langue } from '@/types';
 
 const ACCENT = '#7A1F3D';
-const NAVY = '#0A1F44';
+const NAVY = '#725A61';
 
 const GROUPS = [
   {
@@ -34,14 +34,14 @@ const GROUPS = [
     title: 'SUPPORT',
     rows: [
       { icon: 'help-circle-outline', color: NAVY, title: "Centre d'aide", subtitle: 'FAQ et tutoriels', route: '/aide' as const },
-      { icon: 'information-outline', color: ACCENT, title: 'À propos', subtitle: 'Version et informations sur eGuine' },
+      { icon: 'information-outline', color: ACCENT, title: 'À propos', subtitle: 'Version et informations sur Cantique Guinée' },
     ],
   },
 ];
 
 const THEME_OPTIONS = [
   { value: 'light', label: 'Clair', description: 'Fond blanc et contraste standard' },
-  { value: 'dark', label: 'Sombre', description: 'Fond bleu nuit et texte clair' },
+  { value: 'dark', label: 'Sombre', description: 'Fond noir et texte clair' },
   { value: 'system', label: 'Système', description: 'Suit le réglage de votre appareil' },
 ] as const;
 
@@ -149,7 +149,7 @@ export default function KotlinSettingsScreen() {
 
         <View style={styles.footer}>
           <View style={styles.footerIcon}><MaterialCommunityIcons name="music-note" size={20} color={ACCENT} /></View>
-          <Text style={[styles.footerTitle, { color: theme.text, fontSize: fs(15) }]}>eGuine</Text>
+          <Text style={[styles.footerTitle, { color: theme.text, fontSize: fs(15) }]}>Cantique Guinée</Text>
           <Text style={[styles.footerMeta, { color: theme.textSecondary, fontSize: fs(11) }]}>Chants liturgiques de Guinée · Version {Constants.expoConfig?.version ?? '1.0.0'}</Text>
         </View>
       </ScrollView>
@@ -247,7 +247,7 @@ export default function KotlinSettingsScreen() {
                 <InfoPanel
                   theme={theme}
                   icon="music-note"
-                  title="eGuine"
+                  title="Cantique Guinée"
                   message={`Chants liturgiques de Guinée\nVersion ${Constants.expoConfig?.version ?? '1.0.0'}\n\nLe catalogue et les préférences locales sont accessibles sans connexion.`}
                 />
               )}
@@ -357,7 +357,7 @@ const styles = createThemedStyles({
   dialogRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16 },
   scrim: { ...StyleSheet.absoluteFill, backgroundColor: '#00000099' },
   sheet: { width: '100%', maxWidth: 440, maxHeight: '88%', borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, overflow: 'hidden' },
-  sheetHeader: { minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 20, paddingRight: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#0A1F4430' },
+  sheetHeader: { minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 20, paddingRight: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5E5' },
   sheetTitle: { fontWeight: '700' },
   closeButton: { width: 40, height: 42, alignItems: 'center', justifyContent: 'center' },
   sheetContent: { gap: 8, padding: 16, paddingBottom: 20 },

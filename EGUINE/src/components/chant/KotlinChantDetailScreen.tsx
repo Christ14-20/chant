@@ -2,19 +2,19 @@ import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Modal, Pressable, ScrollView, Share, StyleSheet, Text, View,
+  Alert, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View,
   Animated, Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRootNavigationState, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useAppStore } from '@/store/useAppStore';
-import { goBackSafely } from '@/utils/navigation';
 import { useFontSize } from '@/hooks/use-font-size';
 import { wp } from '@/hooks/use-responsive';
 import { recordChantView } from '@/database/chant-database';
+import { isVoiceResource } from '@/utils/chant-resources';
 import { ActionColors } from '@/constants/theme';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -23,13 +23,13 @@ import * as FileSystem from 'expo-file-system/legacy';
 const TOKENS = {
   bg: '#FFFFFF',
   surface: '#FFFFFF',
-  ink: '#0A1F44',
-  inkMuted: '#0A1F44',
-  inkSubtle: '#0A1F44',
+  ink: '#000000',
+  inkMuted: '#4A4A4A',
+  inkSubtle: '#777777',
   gold: '#7A1F3D',
   goldSoft: '#7A1F3D',
-  teal: '#0A1F44',
-  border: '#FFFFFF',
+  teal: '#725A61',
+  border: '#E5E5E5',
   pink: '#7A1F3D',
 };
 
@@ -42,13 +42,31 @@ function formatAudioTime(seconds: number): string {
   return `${Math.floor(whole / 60).toString().padStart(2, '0')}:${(whole % 60).toString().padStart(2, '0')}`;
 }
 
+function firstRouteParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
+
 // ============ ÉCRAN ============
 export default function KotlinChantDetailScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const rootNavigationState = useRootNavigationState();
+  const params = useLocalSearchParams<{
+    id: string | string[];
+    selectForMass?: string | string[];
+    celebrationId?: string | string[];
+    slotId?: string | string[];
+    slotTitle?: string | string[];
+  }>();
+  const id = firstRouteParam(params.id);
+  const selectForMass = firstRouteParam(params.selectForMass) === '1';
+  const massCelebrationId = firstRouteParam(params.celebrationId);
+  const massSlotId = firstRouteParam(params.slotId);
+  const massSlotTitle = firstRouteParam(params.slotTitle);
 
   const chants = useAppStore((state) => state.chants);
+  const celebrations = useAppStore((state) => state.celebrations);
+  const setCelebrationSlotChants = useAppStore((state) => state.setCelebrationSlotChants);
   const favorites = useAppStore((state) => state.favorites);
   const toggleFavorite = useAppStore((state) => state.toggleFavorite);
   const currentChantId = useAppStore((state) => state.currentChantId);
@@ -70,26 +88,49 @@ export default function KotlinChantDetailScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const recordedViewId = useRef<string | null>(null);
   const progressWidth = useRef(1);
+  const previousChantId = useRef(id);
 
   const heartScale = useRef(new Animated.Value(1)).current;
 
   const chant = useMemo(() => chants.find((item) => item.id === id), [chants, id]);
+  const massCelebration = celebrations.find((item) => item.id === massCelebrationId);
+  const massSlotKey = massSlotId ? `slot:${massSlotId}` : undefined;
+  const selectedMassChantIds = massCelebration && massSlotId
+    ? massCelebration.selectedChants[massSlotKey!] ?? massCelebration.selectedChants[massSlotId] ?? []
+    : [];
+  const massSelectionAvailable = selectForMass
+    && Boolean(massCelebration && massSlotId && massSlotTitle);
   const audioTracks = useMemo(() => {
     if (!chant) return [];
     const resources = (chant.ressources ?? [])
-      .filter((resource) => resource.type === 'audio')
+      .filter((resource) => resource.type === 'audio' && !isVoiceResource(resource))
       .map((resource) => ({ id: resource.id, label: resource.nom, uri: resource.uri }));
     if (resources.length || !chant.audio_url) return resources;
+    if ((chant.ressources ?? []).some((resource) => resource.uri === chant.audio_url && isVoiceResource(resource))) {
+      return resources;
+    }
     return [{ id: 'audio-main', label: 'Audio principal', uri: chant.audio_url }];
   }, [chant]);
   const selectedAudio = audioTracks.find((track) => track.id === selectedAudioId) ?? audioTracks[0];
-  const isCurrentPlaying = activeAudioId !== null && audioStatus.playing;
+  const isCurrentPlaying = currentChantId === chant?.id
+    && activeAudioId === selectedAudio?.id
+    && audioStatus.playing;
   const isFavorite = chant ? favorites.includes(chant.id) : false;
 
   useEffect(() => {
+    if (!chant || currentChantId !== chant.id || activeAudioId !== selectedAudio?.id) return;
     const progress = audioStatus.duration > 0 ? audioStatus.currentTime / audioStatus.duration : 0;
     setPlaybackProgress(progress);
-  }, [audioStatus.currentTime, audioStatus.duration, setPlaybackProgress]);
+  }, [activeAudioId, audioStatus.currentTime, audioStatus.duration, chant, currentChantId, selectedAudio?.id, setPlaybackProgress]);
+
+  useEffect(() => {
+    if (previousChantId.current === id) return;
+    if (currentChantId === previousChantId.current && isPlaying) togglePlay();
+    player.pause();
+    setSelectedAudioId(null);
+    setActiveAudioId(null);
+    previousChantId.current = id;
+  }, [currentChantId, id, isPlaying, player, togglePlay]);
 
   useEffect(() => {
     if (!chant || recordedViewId.current === chant.id) return;
@@ -111,10 +152,7 @@ export default function KotlinChantDetailScreen() {
   const togglePlayback = async () => {
     if (!chant) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (!selectedAudio) {
-      router.push(`/chant/${chant.id}/gestion`);
-      return;
-    }
+    if (!selectedAudio) return;
     if (activeAudioId === selectedAudio.id && audioStatus.playing) {
       player.pause();
       if (currentChantId === chant.id && isPlaying) togglePlay();
@@ -137,6 +175,14 @@ export default function KotlinChantDetailScreen() {
     }
   };
 
+  const selectAudioTrack = (trackId: string) => {
+    if (!chant) return;
+    player.pause();
+    if (currentChantId === chant.id && isPlaying) togglePlay();
+    setSelectedAudioId(trackId);
+    setActiveAudioId(null);
+  };
+
   const handleFavorite = () => {
     if (!chant) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -152,19 +198,37 @@ export default function KotlinChantDetailScreen() {
     void player.seekTo(Math.max(0, Math.min(audioStatus.duration, (locationX / width) * audioStatus.duration)));
   };
 
+  const handleBack = () => {
+    const previousRoute = rootNavigationState.routes[rootNavigationState.index - 1];
+    if (previousRoute?.name === 'chant/[id]') {
+      router.dismissTo('/chants');
+      return;
+    }
+    if (router.canGoBack()) router.back();
+    else router.replace('/chants');
+  };
+
+  const selectChantForMass = () => {
+    if (!chant || !massCelebration || !massSlotId || !massSlotKey) return;
+    if (!selectedMassChantIds.includes(chant.id)) {
+      setCelebrationSlotChants(massCelebration.id, massSlotKey, [...selectedMassChantIds, chant.id]);
+    }
+    router.back();
+  };
+
   // ── Empty state ──
   if (!chant) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <View style={styles.emptyState}>
           <View style={styles.emptyIcon}>
-            <MaterialCommunityIcons name="alert-circle-outline" size={38} color={TOKENS.inkSubtle} />
+            <MaterialCommunityIcons name="alert-circle-outline" size={38} color={theme.textSecondary} />
           </View>
           <Text style={styles.emptyTitle}>Chant indisponible</Text>
           <Text style={styles.emptySubtitle}>
             Ce chant n'est pas disponible pour le moment.
           </Text>
-          <Pressable onPress={goBackSafely} style={styles.backFallback}>
+          <Pressable onPress={handleBack} style={styles.backFallback}>
             <Text style={styles.backFallbackLabel}>Retour au catalogue</Text>
           </Pressable>
         </View>
@@ -177,17 +241,17 @@ export default function KotlinChantDetailScreen() {
   const lyricLines = chant.paroles.split('\n');
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       {/* ═══ TOP BAR ═══ */}
       <View style={styles.topBar}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Retour"
-          onPress={goBackSafely}
+          onPress={handleBack}
           style={({ pressed }) => [styles.iconBtn, pressed && { opacity: 0.6 }]}
           hitSlop={6}
         >
-          <MaterialCommunityIcons name="chevron-left" size={26} color={TOKENS.ink} />
+          <MaterialCommunityIcons name="chevron-left" size={26} color={theme.textSecondary} />
         </Pressable>
 
         <View style={styles.topTitleBlock}>
@@ -287,7 +351,7 @@ export default function KotlinChantDetailScreen() {
           {/* Fin de chant décorative */}
           <View style={styles.endMark}>
             <View style={styles.endLine} />
-            <MaterialCommunityIcons name="music-clef-treble" size={16} color={TOKENS.inkSubtle} />
+            <MaterialCommunityIcons name="music-clef-treble" size={16} color={theme.textSecondary} />
             <View style={styles.endLine} />
           </View>
         </View>
@@ -295,13 +359,35 @@ export default function KotlinChantDetailScreen() {
 
       {/* ═══ PLAYER BAS ═══ */}
       <View style={styles.bottomPlayer}>
+        {massSelectionAvailable && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={selectedMassChantIds.includes(chant.id)
+              ? `Retourner au programme, ${chant.titre} est déjà ajouté`
+              : `Ajouter ${chant.titre} à ${massSlotTitle}`}
+            onPress={selectChantForMass}
+            style={({ pressed }) => [styles.massSelectButton, pressed && { opacity: 0.76 }]}
+          >
+            <MaterialCommunityIcons
+              name={selectedMassChantIds.includes(chant.id) ? 'check' : 'plus'}
+              size={18}
+              color="#FFFFFF"
+            />
+            <Text style={styles.massSelectButtonLabel}>
+              {selectedMassChantIds.includes(chant.id)
+                ? 'Déjà ajouté — retourner au programme'
+                : `Ajouter à ${massSlotTitle}`}
+            </Text>
+          </Pressable>
+        )}
+
         {/* Progress bar + temps */}
         {audioTracks.length > 0 ? (
           <>
             {audioTracks.length > 1 && (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.audioTrackChoices}>
                 {audioTracks.map((track) => (
-                  <Pressable key={track.id} onPress={() => setSelectedAudioId(track.id)} style={[styles.audioTrackChoice, (selectedAudio?.id ?? audioTracks[0]?.id) === track.id && styles.audioTrackChoiceActive]}>
+                  <Pressable key={track.id} onPress={() => selectAudioTrack(track.id)} style={[styles.audioTrackChoice, (selectedAudio?.id ?? audioTracks[0]?.id) === track.id && styles.audioTrackChoiceActive]}>
                     <Text numberOfLines={1} style={[styles.audioTrackLabel, (selectedAudio?.id ?? audioTracks[0]?.id) === track.id && styles.audioTrackLabelActive]}>{track.label}</Text>
                   </Pressable>
                 ))}
@@ -325,35 +411,62 @@ export default function KotlinChantDetailScreen() {
         {/* Contrôles principaux */}
         <View style={styles.playerControls}>
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={audioTracks.length === 0 ? 'Aucun audio disponible' : isCurrentPlaying ? 'Mettre en pause' : 'Lire le chant'}
+            accessibilityState={{ disabled: audioTracks.length === 0 }}
+            disabled={audioTracks.length === 0}
             onPress={togglePlayback}
             style={({ pressed }) => [
               styles.playCircle,
+              audioTracks.length === 0 && styles.playDisabled,
               pressed && { transform: [{ scale: 0.94 }] },
             ]}
           >
             <MaterialCommunityIcons
-              name={audioTracks.length === 0 ? 'plus' : isCurrentPlaying ? 'pause' : 'play'}
+              name={isCurrentPlaying ? 'pause' : 'play'}
               size={26}
               color="#FFFFFF"
             />
           </Pressable>
+          <Text numberOfLines={1} style={styles.currentAudioLabel}>
+            {selectedAudio?.label ?? 'Aucun audio disponible'}
+          </Text>
+        </View>
 
+        <View style={styles.resourceActions}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Ouvrir les ressources de ce chant"
-            onPress={() => setResourcesMenuVisible(true)}
-            style={({ pressed }) => [styles.resourcesButton, pressed && { opacity: 0.72 }]}
+            accessibilityLabel="Consulter les partitions de ce chant"
+            onPress={() => router.push(`/chant/${chant.id}/partition`)}
+            style={({ pressed }) => [styles.resourceAction, pressed && { opacity: 0.72 }]}
           >
-            <MaterialCommunityIcons name="view-grid-outline" size={19} color={TOKENS.gold} />
-            <Text style={styles.resourcesButtonLabel}>{audioTracks.length ? selectedAudio?.label ?? 'Audio' : 'Ajouter un audio'}</Text>
-            <MaterialCommunityIcons name="chevron-down" size={18} color={TOKENS.inkMuted} />
+            <MaterialCommunityIcons name="music-clef-treble" size={17} color={TOKENS.gold} />
+            <Text style={styles.resourceActionLabel}>Partition</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ouvrir les voix disponibles"
+            onPress={() => router.push(`/chant/${chant.id}/voix`)}
+            style={({ pressed }) => [styles.resourceAction, pressed && { opacity: 0.72 }]}
+          >
+            <MaterialCommunityIcons name="microphone-outline" size={17} color={ActionColors.playback} />
+            <Text style={styles.resourceActionLabel}>Voix</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ouvrir les paroles et accords"
+            onPress={() => setResourcesMenuVisible(true)}
+            style={({ pressed }) => [styles.resourceAction, pressed && { opacity: 0.72 }]}
+          >
+            <MaterialCommunityIcons name="dots-horizontal" size={17} color={theme.textSecondary} />
+            <Text style={styles.resourceActionLabel}>Autres</Text>
           </Pressable>
         </View>
 
         {/* Actions secondaires */}
         <View style={styles.secondaryRow}>
           <Pressable onPress={handleShare} style={styles.secondaryBtn}>
-            <MaterialCommunityIcons name="share-variant-outline" size={15} color={TOKENS.inkMuted} />
+            <MaterialCommunityIcons name="share-variant-outline" size={15} color={theme.textSecondary} />
             <Text style={styles.secondaryLabel}>Partager</Text>
           </Pressable>
 
@@ -364,7 +477,7 @@ export default function KotlinChantDetailScreen() {
               <MaterialCommunityIcons
                 name={isFavorite ? 'heart' : 'heart-outline'}
                 size={16}
-                color={isFavorite ? ActionColors.primary : TOKENS.inkMuted}
+                color={isFavorite ? ActionColors.primary : theme.textSecondary}
               />
             </Animated.View>
             <Text style={[styles.secondaryLabel, isFavorite && { color: ActionColors.primary, fontWeight: '700' }]}>
@@ -375,7 +488,7 @@ export default function KotlinChantDetailScreen() {
           <View style={styles.secondaryDivider} />
 
           <Pressable onPress={() => router.push(`/chant/${chant.id}/gestion`)} style={styles.secondaryBtn}>
-            <MaterialCommunityIcons name="pencil-outline" size={15} color={TOKENS.inkMuted} />
+            <MaterialCommunityIcons name="pencil-outline" size={15} color={theme.textSecondary} />
             <Text style={styles.secondaryLabel}>Gérer</Text>
           </Pressable>
         </View>
@@ -407,13 +520,11 @@ export default function KotlinChantDetailScreen() {
                 onPress={() => setResourcesMenuVisible(false)}
                 style={styles.resourceMenuClose}
               >
-                <MaterialCommunityIcons name="close" size={20} color={TOKENS.ink} />
+                <MaterialCommunityIcons name="close" size={20} color={theme.textSecondary} />
               </Pressable>
             </View>
             {([
               { key: 'paroles', label: 'Paroles', detail: 'Lire et suivre le texte', icon: 'text-box-outline', color: ActionColors.discovery },
-              { key: 'partition', label: 'Partition', detail: 'Partitions et documents musicaux', icon: 'music-clef-treble', color: ActionColors.primary },
-              { key: 'voix', label: 'Voix', detail: 'Soprano, alto, ténor et basse', icon: 'microphone-outline', color: ActionColors.playback },
               { key: 'accords', label: 'Accords', detail: 'Grille et accompagnement', icon: 'music-note', color: ActionColors.success },
             ] as const).map((item) => (
               <Pressable
@@ -434,7 +545,7 @@ export default function KotlinChantDetailScreen() {
                   <Text style={styles.resourceMenuItemTitle}>{item.label}</Text>
                   <Text style={styles.resourceMenuItemDetail}>{item.detail}</Text>
                 </View>
-                <MaterialCommunityIcons name="chevron-right" size={20} color={TOKENS.inkMuted} />
+                <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
               </Pressable>
             ))}
           </View>
@@ -579,6 +690,18 @@ const styles = createThemedStyles({
     shadowRadius: 8,
     elevation: 8,
   },
+  massSelectButton: {
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: TOKENS.gold,
+  },
+  massSelectButtonLabel: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
 
   // Progress
   progressRow: {
@@ -622,6 +745,27 @@ const styles = createThemedStyles({
     alignItems: 'center',
     gap: 12,
   },
+  currentAudioLabel: { flex: 1, color: TOKENS.inkMuted, fontSize: 12, fontWeight: '600' },
+  resourceActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  resourceAction: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 6,
+    borderRadius: 11,
+    backgroundColor: TOKENS.bg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: TOKENS.border,
+  },
+  resourceActionLabel: { color: TOKENS.ink, fontSize: 10, fontWeight: '700' },
   playCircle: {
     width: 50, height: 50,
     borderRadius: 25,
@@ -633,23 +777,7 @@ const styles = createThemedStyles({
     shadowRadius: 10,
     elevation: 4,
   },
-  resourcesButton: {
-    flex: 1,
-    minHeight: 46,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 9,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    backgroundColor: TOKENS.bg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: TOKENS.border,
-  },
-  resourcesButtonLabel: {
-    color: TOKENS.ink, fontSize: 11, fontWeight: '700',
-    letterSpacing: 0.1,
-  },
+  playDisabled: { opacity: 0.4 },
   resourceMenuRoot: { flex: 1, justifyContent: 'flex-end' },
   resourceMenuScrim: { ...StyleSheet.absoluteFill, backgroundColor: '#00000066' },
   resourceMenuSheet: {

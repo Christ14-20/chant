@@ -363,7 +363,7 @@ export default function NouveauChantPersonnelScreen() {
             </View>
             {recorderStatus.isRecording || isPaused ? (
               <Pressable accessibilityRole="button" accessibilityLabel={pauseLabel} onPress={toggleRecordingPause} style={styles.smallAction}>
-                <MaterialCommunityIcons name={isPaused ? 'play' : 'pause'} size={21} color="#0A1F44" />
+                <MaterialCommunityIcons name={isPaused ? 'play' : 'pause'} size={21} color={theme.textSecondary} />
               </Pressable>
             ) : null}
           </View>
@@ -385,7 +385,7 @@ export default function NouveauChantPersonnelScreen() {
                   onPress={() => previewStatus.playing ? previewPlayer.pause() : previewPlayer.play()}
                   style={[styles.outlineButton, styles.previewButton]}
                 >
-                  <MaterialCommunityIcons name={previewStatus.playing ? 'pause' : 'play'} size={19} color="#0A1F44" />
+                  <MaterialCommunityIcons name={previewStatus.playing ? 'pause' : 'play'} size={19} color={theme.textSecondary} />
                   <Text style={styles.previewButtonText}>{previewStatus.playing ? 'Pause' : 'Écouter'}</Text>
                 </Pressable>
                 <Pressable
@@ -539,12 +539,12 @@ const styles = createThemedStyles({
   recordCopy: { flex: 1, gap: 3 },
   recordTitle: { fontSize: 14, fontWeight: '700' },
   recordSubtitle: { fontSize: 12 },
-  smallAction: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A1F4410' },
+  smallAction: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F4E9ED' },
   recordActions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   outlineButton: { minHeight: 40, borderRadius: 11, borderWidth: 1, borderColor: '#7A1F3D', paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   outlineButtonText: { color: '#7A1F3D', fontSize: 12, fontWeight: '700' },
-  previewButton: { borderColor: '#0A1F44' },
-  previewButtonText: { color: '#0A1F44', fontSize: 12, fontWeight: '700' },
+  previewButton: { borderColor: '#7A1F3D' },
+  previewButtonText: { color: '#7A1F3D', fontSize: 12, fontWeight: '700' },
   stopButton: { minHeight: 40, borderRadius: 11, backgroundColor: '#A52A36', paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 6 },
   stopButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   deleteButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },

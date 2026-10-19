@@ -15,8 +15,8 @@ const COLORS = {
   gold: '#7A1F3D',
   text: '#0A1F44',
   muted: '#0A1F44',
-  border: '#FFFFFF',
-  blue: '#0A1F44',
+  border: '#E5E5E5',
+  blue: '#725A61',
   rose: '#7A1F3D',
   violet: '#7A1F3D',
 };
@@ -25,7 +25,7 @@ const FILTERS = ['Tout', 'Chants'] as const;
 type SearchFilter = (typeof FILTERS)[number];
 
 export default function SearchScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<SearchFilter>('Tout');
@@ -63,7 +63,7 @@ export default function SearchScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={19} color={COLORS.text} />
+          <MaterialCommunityIcons name="arrow-left" size={19} color={theme.textSecondary} />
         </Pressable>
         <View style={styles.searchField}>
           <MaterialCommunityIcons name="magnify" size={19} color={ActionColors.discovery} />
@@ -74,14 +74,14 @@ export default function SearchScreen() {
             onChangeText={setQuery}
             onSubmitEditing={submitSearch}
             placeholder="Rechercher un chant…"
-            placeholderTextColor={COLORS.muted}
+            placeholderTextColor={theme.textSecondary}
             returnKeyType="search"
             style={styles.input}
             value={query}
           />
           {query.length > 0 && (
             <Pressable accessibilityRole="button" accessibilityLabel="Effacer la recherche" onPress={() => setQuery('')}>
-              <MaterialCommunityIcons name="close-circle" size={19} color={COLORS.muted} />
+              <MaterialCommunityIcons name="close-circle" size={19} color={theme.textSecondary} />
             </Pressable>
           )}
         </View>
@@ -203,6 +203,7 @@ function ResultRow({
   subtitle: string;
   onPress: () => void;
 }) {
+  const theme = useTheme();
   return (
     <Pressable onPress={onPress} style={styles.resultRow}>
       <View style={[styles.resultIcon, { backgroundColor: `${iconColor}20` }]}>
@@ -212,7 +213,7 @@ function ResultRow({
         <Text numberOfLines={1} style={styles.rowTitle}>{title}</Text>
         <Text numberOfLines={2} style={styles.rowSubtitle}>{subtitle}</Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={15} color={COLORS.muted} />
+      <MaterialCommunityIcons name="chevron-right" size={15} color={theme.textSecondary} />
     </Pressable>
   );
 }
@@ -225,7 +226,7 @@ const styles = createThemedStyles({
   input: { flex: 1, minHeight: 44, color: COLORS.text, fontSize: 15 },
   filters: { gap: 8, paddingHorizontal: 14, paddingBottom: 8 },
   filterChip: { minHeight: 34, justifyContent: 'center', paddingHorizontal: 14, borderWidth: 1, borderColor: COLORS.border, borderRadius: 18, backgroundColor: COLORS.card },
-  filterChipActive: { borderColor: COLORS.blue, backgroundColor: '#0A1F4420' },
+  filterChipActive: { borderColor: COLORS.blue, backgroundColor: '#7A1F3D20' },
   filterLabel: { color: COLORS.muted, fontSize: 13, fontWeight: '600' },
   filterLabelActive: { color: COLORS.text },
   filterCount: { color: COLORS.muted, fontSize: 10, fontWeight: '700' },

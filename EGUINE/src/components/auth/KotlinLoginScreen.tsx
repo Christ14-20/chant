@@ -8,11 +8,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '@/store/useAppStore';
 import { goBackSafely } from '@/utils/navigation';
 
-const COLORS = { background: '#FFFFFF', card: '#FFFFFF', input: '#FFFFFF', gold: '#7A1F3D', goldDark: '#7A1F3D', text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF', red: '#7A1F3D' };
+const COLORS = { background: '#FFFFFF', card: '#FFFFFF', input: '#FFFFFF', gold: '#7A1F3D', goldDark: '#7A1F3D', text: '#0A1F44', muted: '#0A1F44', border: '#E5E5E5', red: '#7A1F3D' };
 const EMAIL_REGEX = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 export default function KotlinLoginScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const login = useAppStore((state) => state.login);
   const [email, setEmail] = useState('');
@@ -49,7 +49,7 @@ export default function KotlinLoginScreen() {
                 <Image source={require('../../../assets/images/icon.png')} style={styles.logo} resizeMode="contain" />
               </View>
             </View>
-            <Text style={styles.brandName}>Chorale eGuine</Text>
+            <Text style={styles.brandName}>Cantique Guinée</Text>
             <Text style={styles.welcome}>Bon retour !</Text>
             <Text style={styles.subtitle}>Connectez-vous à votre espace choriste</Text>
           </View>
@@ -58,7 +58,7 @@ export default function KotlinLoginScreen() {
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Adresse e-mail</Text>
               <View style={[styles.inputFrame, emailError && styles.inputError]}>
-                <MaterialCommunityIcons name="email-outline" size={20} color={emailError ? COLORS.red : COLORS.muted} />
+                <MaterialCommunityIcons name="email-outline" size={20} color={emailError ? COLORS.red : theme.textSecondary} />
                 <TextInput
                   accessibilityLabel="Adresse e-mail"
                   autoCapitalize="none"
@@ -78,7 +78,7 @@ export default function KotlinLoginScreen() {
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Mot de passe</Text>
               <View style={[styles.inputFrame, passwordError && styles.inputError]}>
-                <MaterialCommunityIcons name="lock-outline" size={20} color={passwordError ? COLORS.red : COLORS.muted} />
+                <MaterialCommunityIcons name="lock-outline" size={20} color={passwordError ? COLORS.red : theme.textSecondary} />
                 <TextInput
                   accessibilityLabel="Mot de passe"
                   autoComplete="current-password"
@@ -91,7 +91,7 @@ export default function KotlinLoginScreen() {
                   value={password}
                   onSubmitEditing={submitLogin}
                 />
-                {password.length > 0 && <Pressable accessibilityRole="button" accessibilityLabel={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} onPress={() => setShowPassword((value) => !value)} style={styles.passwordToggle}><MaterialCommunityIcons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={COLORS.muted} /></Pressable>}
+                {password.length > 0 && <Pressable accessibilityRole="button" accessibilityLabel={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'} onPress={() => setShowPassword((value) => !value)} style={styles.passwordToggle}><MaterialCommunityIcons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color={theme.textSecondary} /></Pressable>}
               </View>
               {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
             </View>
@@ -132,9 +132,10 @@ export default function KotlinLoginScreen() {
 }
 
 function SocialButton({ name, label }: { name: string; label: string }) {
+  const theme = useTheme();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => {}} style={({ pressed }) => [styles.socialButton, pressed && styles.loginPressed]}>
-      <MaterialCommunityIcons name={name as any} size={22} color={name === 'google' ? '#7A1F3D' : COLORS.text} />
+      <MaterialCommunityIcons name={name as any} size={22} color={name === 'google' ? '#7A1F3D' : theme.text} />
     </Pressable>
   );
 }

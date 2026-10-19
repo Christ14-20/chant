@@ -13,11 +13,11 @@ import { goBackSafely } from '@/utils/navigation';
 const CATEGORIES = [
   { key: 'matin', label: 'Matin', icon: 'sun.max.fill', color: '#7A1F3D' },
   { key: 'midi', label: 'Midi', icon: 'sun.min.fill', color: '#7A1F3D' },
-  { key: 'soir', label: 'Soir', icon: 'moon.fill', color: '#0A1F44' },
+  { key: 'soir', label: 'Soir', icon: 'moon.fill', color: '#725A61' },
   { key: 'mariale', label: 'Mariale', icon: 'star.fill', color: '#7A1F3D' },
   { key: 'intention', label: 'Intention', icon: 'heart.fill', color: '#7A1F3D' },
   { key: 'oraison', label: 'Oraison', icon: 'hands.sparkles', color: '#7A1F3D' },
-  { key: 'autre', label: 'Autre', icon: 'ellipsis.circle', color: '#0A1F44' },
+  { key: 'autre', label: 'Autre', icon: 'ellipsis.circle', color: '#725A61' },
 ] as const;
 
 const LANGUES = ['fr', 'la', 'es', 'soussou', 'poular', 'malinke', 'kissi', 'guerze', 'toma', 'en'] as const;
@@ -52,7 +52,7 @@ export default function NouvellePriereScreen() {
         <ThemedView style={[styles.header, { paddingHorizontal: pad.h, paddingTop: pad.top }]}>
           <ThemedView style={styles.headerRow}>
             <Pressable onPress={goBackSafely} style={styles.backBtn}>
-              <SymbolView name="xmark" size={18} tintColor="#0A1F44" />
+              <SymbolView name="xmark" size={18} tintColor={theme.textSecondary} />
             </Pressable>
             <ThemedText style={[styles.title, { fontSize: fs.xl }]}>Nouvelle prière</ThemedText>
             <Pressable
@@ -91,7 +91,7 @@ export default function NouvellePriereScreen() {
                   style={[styles.catCard, { backgroundColor: theme.backgroundElement, borderColor: theme.border }, categorie === cat.key && styles.catCardActive, categorie === cat.key && { borderColor: cat.color }]}
                   onPress={() => { setCategorie(cat.key); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                 >
-                  <SymbolView name={cat.icon as any} size={20} tintColor={categorie === cat.key ? cat.color : '#0A1F44'} />
+                  <SymbolView name={cat.icon as any} size={20} tintColor={categorie === cat.key ? cat.color : theme.textSecondary} />
                   <ThemedText style={[styles.catLabel, { fontSize: fs.sm }, categorie === cat.key && { color: cat.color }]}>
                     {cat.label}
                   </ThemedText>
@@ -170,7 +170,7 @@ const styles = createThemedStyles({
     borderRadius: 12,
     borderWidth: 1.5,
   },
-  catCardActive: { backgroundColor: 'rgba(10,31,68,0.08)' },
+  catCardActive: { backgroundColor: 'rgba(122,31,61,0.08)' },
   catLabel: { fontWeight: '500', opacity: 0.8 },
   chips: { flexDirection: 'row', gap: 8, paddingBottom: 4 },
   chip: {
@@ -179,8 +179,8 @@ const styles = createThemedStyles({
     borderRadius: 999,
     borderWidth: 1,
   },
-  chipActive: { backgroundColor: 'rgba(10,31,68,0.15)', borderColor: '#0A1F44' },
+  chipActive: { backgroundColor: 'rgba(122,31,61,0.15)', borderColor: '#7A1F3D' },
   chipText: { opacity: 0.7, fontWeight: '500' },
-  chipTextActive: { color: '#0A1F44', opacity: 1, fontWeight: '600' },
+  chipTextActive: { color: '#7A1F3D', opacity: 1, fontWeight: '600' },
   bottomPad: { height: 80 },
 });

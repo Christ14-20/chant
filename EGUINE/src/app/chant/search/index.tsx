@@ -10,10 +10,10 @@ import { useAppStore } from '@/store/useAppStore';
 import { useLocalChantSearch } from '@/hooks/use-local-chant-search';
 import { ActionColors } from '@/constants/theme';
 
-const COLORS = { background: '#FFFFFF', card: '#FFFFFF', gold: '#7A1F3D', teal: '#0A1F44', text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF' };
+const COLORS = { background: '#FFFFFF', card: '#FFFFFF', gold: '#7A1F3D', teal: '#725A61', text: '#000000', muted: '#4A4A4A', border: '#E5E5E5' };
 
 export default function ChantSearchScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const favorites = useAppStore((state) => state.favorites);
   const toggleFavorite = useAppStore((state) => state.toggleFavorite);
@@ -32,7 +32,7 @@ export default function ChantSearchScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
-          <SymbolView name="chevron.left" size={18} tintColor={COLORS.text} />
+          <SymbolView name="chevron.left" size={18} tintColor={theme.textSecondary} />
         </Pressable>
         <View style={styles.searchField}>
           <SymbolView name="magnifyingglass" size={17} tintColor={ActionColors.discovery} />
@@ -49,7 +49,7 @@ export default function ChantSearchScreen() {
           />
           {query.length > 0 && (
             <Pressable accessibilityRole="button" accessibilityLabel="Effacer" onPress={() => setQuery('')}>
-              <SymbolView name="xmark.circle.fill" size={18} tintColor={COLORS.muted} />
+              <SymbolView name="xmark.circle.fill" size={18} tintColor={theme.textSecondary} />
             </Pressable>
           )}
         </View>
@@ -66,7 +66,7 @@ export default function ChantSearchScreen() {
         </View>
       ) : filteredChants.length === 0 ? (
         <View style={styles.emptyState}>
-          <SymbolView name="magnifyingglass" size={40} tintColor={COLORS.muted} />
+          <SymbolView name="magnifyingglass" size={40} tintColor={theme.textSecondary} />
           <Text style={styles.emptyTitle}>Aucun chant trouvé</Text>
           <Text style={styles.emptyText}>Essayez un autre mot-clé pour votre recherche.</Text>
         </View>
@@ -84,7 +84,7 @@ export default function ChantSearchScreen() {
                     <Text numberOfLines={1} style={styles.chantTitle}>{chant.titre}</Text>
                     <Text numberOfLines={1} style={styles.chantMeta}>{chant.auteur || 'Chorale eGuine'} · {chant.langue.toUpperCase()}</Text>
                   </View>
-                  <SymbolView name="chevron.right" size={15} tintColor={COLORS.muted} />
+                  <SymbolView name="chevron.right" size={15} tintColor={theme.textSecondary} />
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -93,7 +93,7 @@ export default function ChantSearchScreen() {
                   onPress={() => toggleFavorite(chant.id)}
                   style={styles.favoriteButton}
                 >
-                  <SymbolView name={isFavorite ? 'heart.fill' : 'heart'} size={19} tintColor={isFavorite ? ActionColors.primary : COLORS.muted} />
+                  <SymbolView name={isFavorite ? 'heart.fill' : 'heart'} size={19} tintColor={isFavorite ? ActionColors.primary : theme.textSecondary} />
                 </Pressable>
               </View>
             );
@@ -115,7 +115,7 @@ const styles = createThemedStyles({
   backButton: { width: 38, height: 44, alignItems: 'center', justifyContent: 'center' },
   searchField: { flex: 1, minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: COLORS.border, borderRadius: 10, backgroundColor: COLORS.card },
   input: { flex: 1, minHeight: 42, color: COLORS.text, fontSize: 14 },
-  count: { paddingHorizontal: 16, paddingVertical: 10, color: '#0A1F44B3', fontSize: 13 },
+  count: { paddingHorizontal: 16, paddingVertical: 10, color: '#4A4A4A', fontSize: 13 },
   list: { gap: 8, paddingHorizontal: 12, paddingBottom: 28 },
   loadMore: { alignItems: 'center', paddingVertical: 16 },
   loadMoreLabel: { color: COLORS.gold, fontSize: 14, fontWeight: '700' },
@@ -124,7 +124,7 @@ const styles = createThemedStyles({
   chantIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: `${COLORS.teal}40` },
   chantCopy: { flex: 1, gap: 4 },
   chantTitle: { color: COLORS.text, fontSize: 14, fontWeight: '700' },
-  chantMeta: { color: '#0A1F4499', fontSize: 12 },
+  chantMeta: { color: '#777777', fontSize: 12 },
   favoriteButton: { width: 38, height: 40, alignItems: 'center', justifyContent: 'center' },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 9, padding: 24 },
   emptyTitle: { color: COLORS.text, fontSize: 17, fontWeight: '700' },

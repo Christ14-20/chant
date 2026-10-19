@@ -2,14 +2,14 @@ import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import {
-  Alert, Image, KeyboardAvoidingView, Linking, Modal, Pressable, ScrollView, Share, StyleSheet,
+  Alert, Image, KeyboardAvoidingView, Linking, Modal, Pressable, ScrollView, Share, StatusBar, StyleSheet,
   Text, TextInput, View, Platform, useWindowDimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { setAudioModeAsync, useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WebView } from 'react-native-webview';
 import { goBackSafely } from '@/utils/navigation';
@@ -26,18 +26,18 @@ const TOKENS = {
   paperDeep: '#FFFFFF',
   surface: '#FFFFFF',
   ink: '#000000',
-  inkSoft: '#0A1F44',
-  inkMuted: '#0A1F44',
-  inkSubtle: '#0A1F44',
-  rule: '#0A1F44',
+  inkSoft: '#4A4A4A',
+  inkMuted: '#4A4A4A',
+  inkSubtle: '#777777',
+  rule: '#E5E5E5',
   gold: '#7A1F3D',
   goldWash: '#FFFFFF',
-  teal: '#0A1F44',
+  teal: '#725A61',
   green: '#7A1F3D',
-  purple: '#0A1F44',
+  purple: '#725A61',
   red: '#7A1F3D',
   pink: '#7A1F3D',
-  success: '#0A1F44',
+  success: '#52765F',
 };
 
 // ============ STRUCTURE LITURGIQUE ============
@@ -1032,7 +1032,7 @@ function generateCelebration(
 
 // ============ ÉCRAN MESSE ============
 export default function MesseScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const chants = useAppStore((s) => s.chants);
   const celebrations = useAppStore((s) => s.celebrations);
@@ -1040,6 +1040,7 @@ export default function MesseScreen() {
   const celebration = celebrations.find((item) => item.id === activeCelebrationId) ?? celebrations[0];
   const addCelebration = useAppStore((s) => s.addCelebration);
   const setActiveCelebration = useAppStore((s) => s.setActiveCelebration);
+  const updateCelebration = useAppStore((s) => s.updateCelebration);
   const deleteCelebration = useAppStore((s) => s.deleteCelebration);
   const setCelebrationSlotChants = useAppStore((s) => s.setCelebrationSlotChants);
   const reorderCelebrationSlots = useAppStore((s) => s.reorderCelebrationSlots);
@@ -1058,6 +1059,9 @@ export default function MesseScreen() {
   const [preparationsVisible, setPreparationsVisible] = useState(false);
   const [newPreparationVisible, setNewPreparationVisible] = useState(false);
   const [newPreparationTitle, setNewPreparationTitle] = useState('');
+  const [renamePreparationId, setRenamePreparationId] = useState<string | null>(null);
+  const [renamePreparationTitle, setRenamePreparationTitle] = useState('');
+  const pendingPickerChant = useRef<{ chantId: string; celebrationId: string; slotId: string; slotTitle: string } | null>(null);
 
   const today = new Date();
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -1082,6 +1086,14 @@ export default function MesseScreen() {
     setNewPreparationTitle('');
     setNewPreparationVisible(false);
     setPreparationsVisible(false);
+  };
+
+  const savePreparationName = () => {
+    const title = renamePreparationTitle.trim();
+    if (!renamePreparationId || !title) return;
+    updateCelebration(renamePreparationId, { title });
+    setRenamePreparationId(null);
+    setRenamePreparationTitle('');
   };
 
   const customSlots: MesseSlot[] = [...(celebration?.customMoments ?? [])]
@@ -1169,9 +1181,31 @@ export default function MesseScreen() {
   const closePicker = useCallback(() => setActiveSlotId(null), []);
 
   const openChantFromPicker = useCallback((chantId: string) => {
-    if (!chantId) return;
-    router.push(`/chant/${chantId}`);
-  }, [router]);
+    if (!chantId || !celebration || !activeSlot) return;
+    pendingPickerChant.current = {
+      chantId,
+      celebrationId: celebration.id,
+      slotId: activeSlot.id,
+      slotTitle: activeSlot.title,
+    };
+    closePicker();
+  }, [activeSlot, celebration, closePicker]);
+
+  useEffect(() => {
+    if (activeSlotId !== null || !pendingPickerChant.current) return;
+    const pending = pendingPickerChant.current;
+    pendingPickerChant.current = null;
+    router.push({
+      pathname: '/chant/[id]',
+      params: {
+        id: pending.chantId,
+        selectForMass: '1',
+        celebrationId: pending.celebrationId,
+        slotId: pending.slotId,
+        slotTitle: pending.slotTitle,
+      },
+    });
+  }, [activeSlotId, router]);
 
   const handleAddCustomMoment = () => {
     const title = customMomentTitle.trim();
@@ -1274,15 +1308,17 @@ export default function MesseScreen() {
           setStartPlaybackOnOpen(false);
         }}
       >
-        <CelebrationMode
-          celebration={celebration}
-          chants={chants}
-          autoStart={startPlaybackOnOpen}
-          onExit={() => {
-            setCelebrationMode(false);
-            setStartPlaybackOnOpen(false);
-          }}
-        />
+        <SafeAreaProvider>
+          <CelebrationMode
+            celebration={celebration}
+            chants={chants}
+            autoStart={startPlaybackOnOpen}
+            onExit={() => {
+              setCelebrationMode(false);
+              setStartPlaybackOnOpen(false);
+            }}
+          />
+        </SafeAreaProvider>
       </Modal>
     );
   }
@@ -1293,7 +1329,7 @@ export default function MesseScreen() {
       {/* HEADER */}
       <View style={styles.header}>
         <Pressable onPress={goBackSafely} style={styles.iconBtn} hitSlop={8}>
-          <MaterialCommunityIcons name="chevron-left" size={26} color={TOKENS.ink} />
+          <MaterialCommunityIcons name="chevron-left" size={26} color={theme.textSecondary} />
         </Pressable>
 
         <Pressable
@@ -1306,7 +1342,7 @@ export default function MesseScreen() {
             <Text style={styles.headerTitle} numberOfLines={1}>
               {celebration?.title ?? 'Préparation de Messe'}
             </Text>
-            <MaterialCommunityIcons name="chevron-down" size={19} color={TOKENS.ink} />
+            <MaterialCommunityIcons name="chevron-down" size={19} color={theme.textSecondary} />
           </View>
           <Text style={styles.headerSub} numberOfLines={1}>
             {todayLiturgical.seasonLabel} · {stats.filledSlots}/{stats.totalSlots} parties · ~{stats.estimatedMin} min
@@ -1333,14 +1369,14 @@ export default function MesseScreen() {
             style={styles.iconBtn}
             hitSlop={8}
           >
-            <MaterialCommunityIcons name="history" size={19} color={TOKENS.ink} />
+            <MaterialCommunityIcons name="history" size={19} color={theme.textSecondary} />
           </Pressable>
           {stats.totalSelected > 0 && (
             <Pressable onPress={shareProgram} style={styles.iconBtn} hitSlop={8}>
               <MaterialCommunityIcons
                 name="share-variant-outline"
                 size={19}
-                color={TOKENS.ink}
+                color={theme.textSecondary}
               />
             </Pressable>
           )}
@@ -1371,7 +1407,7 @@ export default function MesseScreen() {
           ]}
         >
           <LinearGradient
-            colors={[TOKENS.gold, TOKENS.inkSoft]}
+            colors={[TOKENS.gold, '#4F1027']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.magicGradient}
@@ -1467,7 +1503,7 @@ export default function MesseScreen() {
                                 <MaterialCommunityIcons
                                   name="close-circle-outline"
                                   size={17}
-                                  color={TOKENS.inkMuted}
+                                  color={theme.textSecondary}
                                 />
                               </Pressable>
                             </Pressable>
@@ -1483,7 +1519,7 @@ export default function MesseScreen() {
                         <MaterialCommunityIcons
                           name="pencil-outline"
                           size={14}
-                          color={TOKENS.inkMuted}
+                          color={theme.textSecondary}
                         />
                       ) : (
                         <View style={styles.slotAddBtn}>
@@ -1542,7 +1578,7 @@ export default function MesseScreen() {
                     hitSlop={8}
                     style={[styles.reorderButton, customIndex <= 0 && styles.reorderButtonDisabled]}
                   >
-                    <MaterialCommunityIcons name="chevron-up" size={16} color={customIndex <= 0 ? '#A0A7B5' : TOKENS.ink} />
+                    <MaterialCommunityIcons name="chevron-up" size={16} color={customIndex <= 0 ? '#A0A7B5' : theme.textSecondary} />
                   </Pressable>
                   <Pressable
                     accessibilityRole="button"
@@ -1552,7 +1588,7 @@ export default function MesseScreen() {
                     hitSlop={8}
                     style={[styles.reorderButton, customIndex >= celebrationSlots.length - 1 && styles.reorderButtonDisabled]}
                   >
-                    <MaterialCommunityIcons name="chevron-down" size={16} color={customIndex >= celebrationSlots.length - 1 ? '#A0A7B5' : TOKENS.ink} />
+                    <MaterialCommunityIcons name="chevron-down" size={16} color={customIndex >= celebrationSlots.length - 1 ? '#A0A7B5' : theme.textSecondary} />
                   </Pressable>
                   <Pressable
                     accessibilityRole="button"
@@ -1561,7 +1597,7 @@ export default function MesseScreen() {
                     style={styles.removeMomentButton}
                     hitSlop={8}
                   >
-                    <MaterialCommunityIcons name="close" size={18} color={TOKENS.inkMuted} />
+                    <MaterialCommunityIcons name="close" size={18} color={theme.textSecondary} />
                   </Pressable>
                 </View>
               </View>
@@ -1590,7 +1626,7 @@ export default function MesseScreen() {
                       style={styles.slotAction}
                       hitSlop={6}
                     >
-                      <MaterialCommunityIcons name="close-circle-outline" size={18} color={TOKENS.inkMuted} />
+                      <MaterialCommunityIcons name="close-circle-outline" size={18} color={theme.textSecondary} />
                     </Pressable>
                   </Pressable>
                 ))}
@@ -1655,7 +1691,7 @@ export default function MesseScreen() {
             onPress={confirmResetProgram}
             style={styles.resetBtn}
           >
-            <MaterialCommunityIcons name="refresh" size={14} color={TOKENS.inkMuted} />
+            <MaterialCommunityIcons name="refresh" size={14} color={theme.textSecondary} />
             <Text style={styles.resetText}>Réinitialiser le programme</Text>
           </Pressable>
         )}
@@ -1671,88 +1707,146 @@ export default function MesseScreen() {
           <Pressable onPress={() => setPreparationsVisible(false)} style={styles.modalScrim} />
           <View style={styles.preparationSheet}>
             <View style={styles.sheetHandle} />
-            <View style={styles.preparationSheetHeader}>
-              <View style={styles.sheetHeadingCopy}>
-                <Text style={styles.sheetEyebrow}>VOTRE BIBLIOTHÈQUE</Text>
-                <Text style={styles.sheetTitle}>Préparations</Text>
-              </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Fermer la liste des préparations"
-                onPress={() => setPreparationsVisible(false)}
-                style={styles.closeBtn}
-              >
-                <MaterialCommunityIcons name="close" size={20} color={TOKENS.ink} />
-              </Pressable>
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setNewPreparationTitle('');
-                setNewPreparationVisible(true);
-              }}
-              style={styles.newPreparationButton}
-            >
-              <MaterialCommunityIcons name="plus-circle-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.newPreparationLabel}>Nouvelle préparation</Text>
-            </Pressable>
-            <ScrollView contentContainerStyle={styles.preparationList}>
-              {celebrations.map((item) => {
-                const selected = item.id === celebration?.id;
-                const chantCount = new Set(
-                  Object.values(item.selectedChants).flatMap((ids) => ids ?? [])
-                ).size;
-                return (
-                  <View key={item.id} style={[styles.preparationRow, selected && styles.preparationRowActive]}>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityState={{ selected }}
-                      onPress={() => {
-                        setActiveCelebration(item.id);
-                        setPreparationsVisible(false);
-                      }}
-                      style={styles.preparationSelect}
-                    >
-                      <MaterialCommunityIcons
-                        name={selected ? 'check-circle' : 'circle-outline'}
-                        size={20}
-                        color={selected ? TOKENS.gold : TOKENS.inkMuted}
-                      />
-                      <View style={styles.preparationCopy}>
-                        <Text numberOfLines={1} style={styles.preparationName}>{item.title}</Text>
-                        <Text style={styles.preparationMeta}>
-                          {formatDateLong(item.date)} · {chantCount} chant{chantCount === 1 ? '' : 's'}
-                        </Text>
-                        <Text style={styles.preparationMeta}>
-                          Modifiée le {formatDateLong(item.updated_at ?? item.created_at ?? item.date)}
-                        </Text>
-                      </View>
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      accessibilityLabel={`Supprimer ${item.title}`}
-                      onPress={() => {
-                        Alert.alert(
-                          'Supprimer cette préparation ?',
-                          `« ${item.title} » et ses choix de chants seront supprimés.`,
-                          [
-                            { text: 'Annuler', style: 'cancel' },
-                            {
-                              text: 'Supprimer',
-                              style: 'destructive',
-                              onPress: () => deleteCelebration(item.id),
-                            },
-                          ],
-                        );
-                      }}
-                      style={styles.removeButton}
-                    >
-                      <MaterialCommunityIcons name="delete-outline" size={20} color={ActionColors.danger} />
-                    </Pressable>
+            {renamePreparationId ? (
+              <>
+                <View style={styles.preparationSheetHeader}>
+                  <View style={styles.sheetHeadingCopy}>
+                    <Text style={styles.sheetEyebrow}>MODIFIER LE NOM</Text>
+                    <Text style={styles.sheetTitle}>Renommer la Messe</Text>
                   </View>
-                );
-              })}
-            </ScrollView>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Annuler le renommage"
+                    onPress={() => setRenamePreparationId(null)}
+                    style={styles.closeBtn}
+                  >
+                    <MaterialCommunityIcons name="close" size={20} color={theme.textSecondary} />
+                  </Pressable>
+                </View>
+                <Text style={styles.createPreparationSubtitle}>Choisissez un nouveau nom pour cette préparation.</Text>
+                <TextInput
+                  accessibilityLabel="Nouveau nom de la préparation"
+                  autoFocus
+                  maxLength={80}
+                  onChangeText={setRenamePreparationTitle}
+                  onSubmitEditing={savePreparationName}
+                  placeholder="Ex. Messe du dimanche"
+                  placeholderTextColor="#7A8494"
+                  returnKeyType="done"
+                  style={styles.createPreparationInput}
+                  value={renamePreparationTitle}
+                />
+                <View style={styles.createPreparationActions}>
+                  <Pressable onPress={() => setRenamePreparationId(null)} style={styles.createCancelButton}>
+                    <Text style={styles.createCancelLabel}>Annuler</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={!renamePreparationTitle.trim()}
+                    onPress={savePreparationName}
+                    style={[styles.createConfirmButton, !renamePreparationTitle.trim() && styles.createDisabledButton]}
+                  >
+                    <Text style={styles.createConfirmLabel}>Enregistrer</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={styles.preparationSheetHeader}>
+                  <View style={styles.sheetHeadingCopy}>
+                    <Text style={styles.sheetEyebrow}>VOTRE BIBLIOTHÈQUE</Text>
+                    <Text style={styles.sheetTitle}>Préparations</Text>
+                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Fermer la liste des préparations"
+                    onPress={() => setPreparationsVisible(false)}
+                    style={styles.closeBtn}
+                  >
+                    <MaterialCommunityIcons name="close" size={20} color={theme.textSecondary} />
+                  </Pressable>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setNewPreparationTitle('');
+                    setNewPreparationVisible(true);
+                  }}
+                  style={styles.newPreparationButton}
+                >
+                  <MaterialCommunityIcons name="plus-circle-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.newPreparationLabel}>Nouvelle préparation</Text>
+                </Pressable>
+                <ScrollView contentContainerStyle={styles.preparationList}>
+                  {celebrations.map((item) => {
+                    const selected = item.id === celebration?.id;
+                    const chantCount = new Set(
+                      Object.values(item.selectedChants).flatMap((ids) => ids ?? [])
+                    ).size;
+                    return (
+                      <View key={item.id} style={[styles.preparationRow, selected && styles.preparationRowActive]}>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityState={{ selected }}
+                          onPress={() => {
+                            setActiveCelebration(item.id);
+                            setPreparationsVisible(false);
+                          }}
+                          style={styles.preparationSelect}
+                        >
+                          <MaterialCommunityIcons
+                            name={selected ? 'check-circle' : 'circle-outline'}
+                            size={20}
+                            color={selected ? TOKENS.gold : theme.textSecondary}
+                          />
+                          <View style={styles.preparationCopy}>
+                            <Text numberOfLines={1} style={styles.preparationName}>{item.title}</Text>
+                            <Text style={styles.preparationMeta}>
+                              {formatDateLong(item.date)} · {chantCount} chant{chantCount === 1 ? '' : 's'}
+                            </Text>
+                            <Text style={styles.preparationMeta}>
+                              Modifiée le {formatDateLong(item.updated_at ?? item.created_at ?? item.date)}
+                            </Text>
+                          </View>
+                        </Pressable>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={`Renommer ${item.title}`}
+                          onPress={() => {
+                            setRenamePreparationId(item.id);
+                            setRenamePreparationTitle(item.title);
+                          }}
+                          style={[styles.removeButton, styles.renameButton]}
+                        >
+                          <MaterialCommunityIcons name="pencil-outline" size={20} color={theme.textSecondary} />
+                        </Pressable>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel={`Supprimer ${item.title}`}
+                          onPress={() => {
+                            Alert.alert(
+                              'Supprimer cette préparation ?',
+                              `« ${item.title} » et ses choix de chants seront supprimés.`,
+                              [
+                                { text: 'Annuler', style: 'cancel' },
+                                {
+                                  text: 'Supprimer',
+                                  style: 'destructive',
+                                  onPress: () => deleteCelebration(item.id),
+                                },
+                              ],
+                            );
+                          }}
+                          style={styles.removeButton}
+                        >
+                          <MaterialCommunityIcons name="delete-outline" size={20} color={ActionColors.danger} />
+                        </Pressable>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
+              </>
+            )}
           </View>
         </View>
       </Modal>
@@ -1826,7 +1920,7 @@ export default function MesseScreen() {
                 <Text style={styles.sheetSubtitle}>{activeSlot?.subtitle}</Text>
               </View>
               <Pressable onPress={closePicker} style={styles.closeBtn} hitSlop={8}>
-                <MaterialCommunityIcons name="close" size={20} color={TOKENS.ink} />
+                <MaterialCommunityIcons name="close" size={20} color={theme.textSecondary} />
               </Pressable>
             </View>
 
@@ -1842,7 +1936,7 @@ export default function MesseScreen() {
               />
               {pickerQuery.length > 0 && (
                 <Pressable onPress={() => setPickerQuery('')} hitSlop={6}>
-                  <MaterialCommunityIcons name="close-circle" size={16} color={TOKENS.inkMuted} />
+                  <MaterialCommunityIcons name="close-circle" size={16} color={theme.textSecondary} />
                 </Pressable>
               )}
             </View>
@@ -1863,7 +1957,7 @@ export default function MesseScreen() {
             >
               {pickerChants.length === 0 ? (
                 <View style={styles.pickerEmpty}>
-                  <MaterialCommunityIcons name="music-note-off" size={32} color={TOKENS.inkSubtle} />
+                  <MaterialCommunityIcons name="music-note-off" size={32} color={theme.textSecondary} />
                   <Text style={styles.pickerEmptyText}>Aucun chant trouvé</Text>
                 </View>
               ) : (
@@ -1916,7 +2010,7 @@ export default function MesseScreen() {
                           onPress={() => openChantFromPicker(chant.id)}
                           style={styles.pickerSecondaryAction}
                         >
-                          <MaterialCommunityIcons name="book-open-variant" size={15} color={TOKENS.ink} />
+                          <MaterialCommunityIcons name="book-open-variant" size={15} color={theme.textSecondary} />
                           <Text style={styles.pickerSecondaryActionText}>Voir</Text>
                         </Pressable>
 
@@ -1967,7 +2061,7 @@ export default function MesseScreen() {
                   <Text style={styles.sheetSubtitle}>Créez une étape et choisissez les chants du répertoire.</Text>
                 </View>
                 <Pressable onPress={() => setAddMomentVisible(false)} style={styles.closeBtn} hitSlop={8}>
-                  <MaterialCommunityIcons name="close" size={20} color={TOKENS.ink} />
+                  <MaterialCommunityIcons name="close" size={20} color={theme.textSecondary} />
                 </Pressable>
               </View>
               <TextInput
@@ -2024,6 +2118,7 @@ function CelebrationWizard({
   onDismiss: () => void;
   onAdopt: (program: SuggestedProgram) => void;
 }) {
+  const theme = useTheme();
   const chants = useAppStore((s) => s.chants);
   const [databaseChants, setDatabaseChants] = useState<Chant[]>([]);
   const [style, setStyle] = useState<CelebrationStyle>('traditionnel');
@@ -2089,7 +2184,7 @@ function CelebrationWizard({
               <Text style={styles.wizardTitle}>Célébration sur mesure</Text>
             </View>
             <Pressable onPress={onDismiss} style={styles.closeBtn} hitSlop={8}>
-              <MaterialCommunityIcons name="close" size={20} color={TOKENS.ink} />
+              <MaterialCommunityIcons name="close" size={20} color={theme.textSecondary} />
             </Pressable>
           </View>
 
@@ -2228,7 +2323,7 @@ function CelebrationWizard({
             {/* ACTIONS */}
             <View style={styles.wizardActions}>
               <Pressable onPress={handleRegenerate} style={styles.regenBtn}>
-                <MaterialCommunityIcons name="refresh" size={16} color={TOKENS.ink} />
+                <MaterialCommunityIcons name="refresh" size={16} color={theme.textSecondary} />
                 <Text style={styles.regenText}>Regénérer</Text>
               </Pressable>
               <Pressable onPress={handleAdopt} style={styles.adoptBtn}>
@@ -2249,6 +2344,7 @@ function StyleCard({
 }: {
   icon: string; label: string; desc: string; active: boolean; onPress: () => void;
 }) {
+  const theme = useTheme();
   return (
     <Pressable
       onPress={() => {
@@ -2261,7 +2357,7 @@ function StyleCard({
         <MaterialCommunityIcons
           name={icon as any}
           size={20}
-          color={active ? '#FFF' : TOKENS.ink}
+          color={active ? '#FFF' : theme.textSecondary}
         />
       </View>
       <Text style={[styles.styleLabel, active && { color: TOKENS.gold }]}>
@@ -2277,6 +2373,7 @@ function LangCard({
 }: {
   label: string; active: boolean; onPress: () => void;
 }) {
+  const theme = useTheme();
   return (
     <Pressable
       onPress={() => {
@@ -2285,7 +2382,7 @@ function LangCard({
       }}
       style={[styles.langCardWiz, active && styles.langCardWizActive]}
     >
-      <MaterialCommunityIcons name="translate" size={18} color={TOKENS.inkMuted} />
+      <MaterialCommunityIcons name="translate" size={18} color={theme.textSecondary} />
       <Text style={[styles.langLabelWiz, active && { color: TOKENS.gold }]}>
         {label}
       </Text>
@@ -2321,6 +2418,7 @@ function CelebrationMode({
   autoStart: boolean;
   onExit: () => void;
 }) {
+  const theme = useTheme();
   const { height: viewportHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const compactLayout = viewportHeight < 600;
@@ -2341,8 +2439,29 @@ function CelebrationMode({
   const lastAudioPositionRef = useRef<number | null>(null);
   const recordedListenRef = useRef(false);
   const [progressWidth, setProgressWidth] = useState(0);
+  const [audioModeReady, setAudioModeReady] = useState(Platform.OS !== 'ios');
+  const [audioModeError, setAudioModeError] = useState<string | null>(null);
   const player = useAudioPlayer(null, { updateInterval: 500 });
   const playback = useAudioPlayerStatus(player);
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    let mounted = true;
+    void setAudioModeAsync({
+      playsInSilentMode: true,
+      interruptionMode: 'doNotMix',
+    })
+      .then(() => {
+        if (mounted) setAudioModeReady(true);
+      })
+      .catch((error: unknown) => {
+        console.error('Impossible de configurer la lecture audio du mode célébration.', error);
+        if (mounted) setAudioModeError('La session audio ne peut pas être initialisée sur cet appareil.');
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const slots = useMemo(
     () => getCelebrationSlots(celebration, chants),
@@ -2452,10 +2571,10 @@ function CelebrationMode({
   }, [player, selectedAudioUri]);
 
   useEffect(() => {
-    if (!autoPlayNext || !selectedAudioUri) return;
+    if (!autoPlayNext || !selectedAudioUri || !audioModeReady) return;
     player.play();
     setAutoPlayNext(false);
-  }, [player, selectedAudioUri, autoPlayNext]);
+  }, [player, selectedAudioUri, autoPlayNext, audioModeReady]);
 
   useEffect(() => {
     if (!playback.didJustFinish) {
@@ -2535,7 +2654,7 @@ function CelebrationMode({
   } = useLocalChantSearch(pickerOptions, 180);
 
   const toggleAudio = () => {
-    if (!selectedAudioUri) return;
+    if (!selectedAudioUri || !audioModeReady) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (playback.playing) player.pause();
     else player.play();
@@ -2559,17 +2678,71 @@ function CelebrationMode({
   const openCurrentChant = () => {
     if (current?.id) router.push(`/chant/${current.id}`);
   };
+  const modeMenu = (
+    <View style={styles.celModeMenu}>
+      <Text style={styles.celModeMenuTitle}>Mode d’affichage</Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ selected: mediaMode === 'audio' }}
+        onPress={() => {
+          setMediaMode('audio');
+          setModeMenuVisible(false);
+        }}
+        style={styles.celModeMenuOption}
+      >
+        <MaterialCommunityIcons name="headphones" size={20} color={theme.textSecondary} />
+        <View style={styles.celModeMenuCopy}>
+          <Text style={styles.celModeMenuOptionTitle}>Audio</Text>
+          <Text style={styles.celModeMenuOptionDetail}>Écouter les chants</Text>
+        </View>
+        {mediaMode === 'audio' && (
+          <MaterialCommunityIcons name="check" size={19} color={TOKENS.gold} />
+        )}
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ selected: mediaMode === 'partition', disabled: partitionResources.length === 0 }}
+        disabled={partitionResources.length === 0}
+        onPress={() => {
+          if (playback.playing) player.pause();
+          setMediaMode('partition');
+          setModeMenuVisible(false);
+        }}
+        style={[
+          styles.celModeMenuOption,
+          partitionResources.length === 0 && styles.celModeMenuOptionDisabled,
+        ]}
+      >
+        <MaterialCommunityIcons name="music-clef-treble" size={20} color={theme.textSecondary} />
+        <View style={styles.celModeMenuCopy}>
+          <Text style={styles.celModeMenuOptionTitle}>Partition</Text>
+          <Text style={styles.celModeMenuOptionDetail}>
+            {partitionResources.length > 0
+              ? `${partitionResources.length} document${partitionResources.length === 1 ? '' : 's'} disponible${partitionResources.length === 1 ? '' : 's'}`
+              : 'Aucune partition pour ce chant'}
+          </Text>
+        </View>
+        {mediaMode === 'partition' && (
+          <MaterialCommunityIcons name="check" size={19} color={TOKENS.gold} />
+        )}
+      </Pressable>
+    </View>
+  );
 
   return (
     <View style={styles.celebrationRoot}>
-      <SafeAreaView style={styles.celSafeArea} edges={['top', 'bottom']}>
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <SafeAreaView style={styles.celSafeArea} edges={['top', 'right', 'bottom', 'left']}>
         <View style={[styles.celHeader, compactLayout && styles.celHeaderCompact]}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Quitter le mode Messe"
-            onPress={onExit}
+            onPress={() => {
+              player.pause();
+              onExit();
+            }}
             style={styles.celExit}
-            hitSlop={10}
+            hitSlop={12}
           >
             <MaterialCommunityIcons name="close" size={22} color="#FFF" />
             <Text style={styles.celExitText}>Fermer</Text>
@@ -2587,16 +2760,17 @@ function CelebrationMode({
             accessibilityState={{ expanded: modeMenuVisible }}
             onPress={() => setModeMenuVisible(true)}
             style={styles.celModeButton}
+            hitSlop={8}
           >
             <MaterialCommunityIcons
               name={mediaMode === 'audio' ? 'headphones' : 'music-clef-treble'}
               size={17}
-              color="#FFFFFF"
+              color={theme.textSecondary}
             />
             <Text style={styles.celModeButtonText}>
               {mediaMode === 'audio' ? 'Audio' : 'Partition'}
             </Text>
-            <MaterialCommunityIcons name="chevron-down" size={17} color="#FFFFFF" />
+            <MaterialCommunityIcons name="chevron-down" size={17} color={theme.textSecondary} />
           </Pressable>
         </View>
 
@@ -2795,8 +2969,15 @@ function CelebrationMode({
                   >
                     <MaterialCommunityIcons name="skip-previous" size={21} color="#FFF" />
                   </Pressable>
-                  <Pressable accessibilityRole="button" accessibilityLabel={playback.playing ? 'Mettre en pause' : 'Lire le chant'} onPress={toggleAudio} style={styles.celPlayBtn}>
-                    <MaterialCommunityIcons name={playback.playing ? 'pause' : 'play'} size={25} color={TOKENS.ink} />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={playback.playing ? 'Mettre en pause' : 'Lire le chant'}
+                    accessibilityState={{ disabled: !audioModeReady }}
+                    disabled={!audioModeReady}
+                    onPress={toggleAudio}
+                    style={[styles.celPlayBtn, !audioModeReady && styles.celDisabledButton]}
+                  >
+                    <MaterialCommunityIcons name={playback.playing ? 'pause' : 'play'} size={25} color="#FFFFFF" />
                   </Pressable>
                   <Pressable
                     accessibilityRole="button"
@@ -2808,13 +2989,15 @@ function CelebrationMode({
                     <MaterialCommunityIcons name="skip-next" size={21} color="#FFF" />
                   </Pressable>
                   <Text numberOfLines={1} style={styles.celAudioStatus}>
-                    {playback.error
-                      ? `Lecture impossible : ${playback.error}`
-                      : playback.isBuffering
-                        ? 'Chargement…'
-                        : playback.isLoaded
-                          ? `${formatAudioTime(playback.currentTime)} / ${formatAudioTime(playback.duration)}`
-                          : 'Audio prêt'}
+                    {audioModeError ?? (!audioModeReady
+                      ? 'Initialisation audio…'
+                      : playback.error
+                        ? `Lecture impossible : ${playback.error}`
+                        : playback.isBuffering
+                          ? 'Chargement…'
+                          : playback.isLoaded
+                            ? `${formatAudioTime(playback.currentTime)} / ${formatAudioTime(playback.duration)}`
+                            : 'Audio prêt')}
                   </Text>
                 </View>
                 <Pressable
@@ -2862,70 +3045,37 @@ function CelebrationMode({
         </View>
       </SafeAreaView>
 
-      <Modal
-        visible={modeMenuVisible}
-        transparent
-        animationType="fade"
-        statusBarTranslucent
-        onRequestClose={() => setModeMenuVisible(false)}
-      >
-        <View style={styles.celModeMenuOverlay}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Fermer le menu de mode"
-            onPress={() => setModeMenuVisible(false)}
-            style={StyleSheet.absoluteFill}
-          />
-          <View style={[styles.celModeMenu, { marginTop: insets.top + 52 }]}>
-            <Text style={styles.celModeMenuTitle}>Mode d’affichage</Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ selected: mediaMode === 'audio' }}
-              onPress={() => {
-                setMediaMode('audio');
-                setModeMenuVisible(false);
-              }}
-              style={styles.celModeMenuOption}
+      {Platform.OS === 'ios'
+        ? modeMenuVisible && (
+            <View style={[styles.celModeMenuOverlay, styles.celModeMenuOverlayInline]}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Fermer le menu de mode"
+                onPress={() => setModeMenuVisible(false)}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={{ marginTop: insets.top + 52 }}>{modeMenu}</View>
+            </View>
+          )
+        : (
+            <Modal
+              visible={modeMenuVisible}
+              transparent
+              animationType="fade"
+              statusBarTranslucent
+              onRequestClose={() => setModeMenuVisible(false)}
             >
-              <MaterialCommunityIcons name="headphones" size={20} color={TOKENS.ink} />
-              <View style={styles.celModeMenuCopy}>
-                <Text style={styles.celModeMenuOptionTitle}>Audio</Text>
-                <Text style={styles.celModeMenuOptionDetail}>Écouter les chants</Text>
+              <View style={styles.celModeMenuOverlay}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Fermer le menu de mode"
+                  onPress={() => setModeMenuVisible(false)}
+                  style={StyleSheet.absoluteFill}
+                />
+                <View style={{ marginTop: insets.top + 52 }}>{modeMenu}</View>
               </View>
-              {mediaMode === 'audio' && (
-                <MaterialCommunityIcons name="check" size={19} color={TOKENS.gold} />
-              )}
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ selected: mediaMode === 'partition', disabled: partitionResources.length === 0 }}
-              disabled={partitionResources.length === 0}
-              onPress={() => {
-                if (playback.playing) player.pause();
-                setMediaMode('partition');
-                setModeMenuVisible(false);
-              }}
-              style={[
-                styles.celModeMenuOption,
-                partitionResources.length === 0 && styles.celModeMenuOptionDisabled,
-              ]}
-            >
-              <MaterialCommunityIcons name="music-clef-treble" size={20} color={TOKENS.ink} />
-              <View style={styles.celModeMenuCopy}>
-                <Text style={styles.celModeMenuOptionTitle}>Partition</Text>
-                <Text style={styles.celModeMenuOptionDetail}>
-                  {partitionResources.length > 0
-                    ? `${partitionResources.length} document${partitionResources.length === 1 ? '' : 's'} disponible${partitionResources.length === 1 ? '' : 's'}`
-                    : 'Aucune partition pour ce chant'}
-                </Text>
-              </View>
-              {mediaMode === 'partition' && (
-                <MaterialCommunityIcons name="check" size={19} color={TOKENS.gold} />
-              )}
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+            </Modal>
+          )}
 
       <Modal
         visible={chantPickerVisible}
@@ -2939,7 +3089,7 @@ function CelebrationMode({
               <Text style={styles.celPickerSubtitle}>{activeSlot?.title ?? ''}</Text>
             </View>
             <Pressable accessibilityRole="button" accessibilityLabel="Fermer la sélection" onPress={() => setChantPickerVisible(false)} style={styles.celPickerClose}>
-              <MaterialCommunityIcons name="close" size={23} color={TOKENS.ink} />
+              <MaterialCommunityIcons name="close" size={23} color={theme.textSecondary} />
             </Pressable>
           </View>
           <View style={styles.celPickerSearch}>
@@ -2994,7 +3144,7 @@ function CelebrationMode({
               {partition?.label ?? 'Partition'}
             </Text>
             <Pressable onPress={() => setPartition(null)} hitSlop={10}>
-              <MaterialCommunityIcons name="close" size={24} color={TOKENS.ink} />
+              <MaterialCommunityIcons name="close" size={24} color={theme.textSecondary} />
             </Pressable>
           </View>
           {partition?.kind === 'pdf' ? (
@@ -3349,6 +3499,7 @@ const styles = createThemedStyles({
   preparationName: { color: TOKENS.ink, fontSize: 13, fontWeight: '700' },
   preparationMeta: { color: TOKENS.inkMuted, fontSize: 10 },
   removeButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  renameButton: { borderRadius: 10, backgroundColor: '#F3F4F6' },
   keyboardAvoidingFill: { flex: 1 },
   createPreparationOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   createPreparationCard: {
@@ -3815,7 +3966,12 @@ const styles = createThemedStyles({
   celAudioDock: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 5, gap: 3, backgroundColor: '#000000' },
   celAudioDockCompact: { paddingTop: 1, paddingBottom: 2, gap: 1 },
   celPartitionOptions: { minHeight: 42, justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 3, backgroundColor: '#000000' },
-  celModeMenuOverlay: { flex: 1, alignItems: 'flex-end', paddingHorizontal: 12, backgroundColor: 'rgba(11, 20, 35, 0.12)' },
+  celModeMenuOverlay: {
+    flex: 1, alignItems: 'flex-end', paddingHorizontal: 12, backgroundColor: 'rgba(11, 20, 35, 0.12)',
+  },
+  celModeMenuOverlayInline: {
+    position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 20, elevation: 20,
+  },
   celModeMenu: {
     width: 270, padding: 12, borderRadius: 16, backgroundColor: '#FFFFFF',
     shadowColor: '#000000', shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 8 },

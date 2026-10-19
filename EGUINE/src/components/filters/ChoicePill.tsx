@@ -29,7 +29,7 @@ export function ChoicePill({ label, selected, onPress, showCheck = true }: Choic
   return (
     <Pressable onPress={onPress} style={[styles.pill, selected && styles.pillSelected]}>
       {selected && showCheck && (
-        <MaterialCommunityIcons name="check" size={12} color="#0A1F44" style={{ marginRight: 4 }} />
+        <MaterialCommunityIcons name="check" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
       )}
       <Text style={[styles.label, selected && styles.labelSelected]}>{label}</Text>
     </Pressable>

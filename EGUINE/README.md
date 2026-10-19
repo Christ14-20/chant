@@ -1,56 +1,47 @@
-# Welcome to your Expo app 👋
+# Cantique Guinée
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Application mobile et web de chants liturgiques, de prières et de préparation de célébrations, réalisée avec React Native, Expo Router et Expo SDK 57.
 
-## Get started
+Le nom technique du projet et son slug Expo restent `EGUINE` pour préserver les liens et l’identité du projet. Le nom affiché de l’application est **Cantique Guinée**.
 
-1. Install dependencies
+## Démarrer
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Depuis le dossier `EGUINE` :
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Commandes de développement :
 
-### Other setup steps
+```bash
+npm run android
+npm run ios
+npm run web
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Identité visuelle
 
-## Learn more
+- Logo horizontal : `assets/images/cantique-guinee-logo.png`
+- Logo vectoriel : `assets/images/cantique-guinee-logo.svg`
+- Icône principale iOS et Android : `assets/images/icon.png`
+- Icônes adaptatives Android : `assets/images/android-icon-*.png`
+- Icône de lancement : `assets/images/splash-icon.png`
+- Favicon web : `assets/images/favicon.png`
 
-To learn more about developing your project with Expo, look at the following resources:
+Le symbole associe une croix, un livre ouvert et une note de musique dans la palette bordeaux, ivoire et or. La signature est « La voix de nos célébrations ».
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Vérifications
 
-## Join the community
+```bash
+npm exec tsc -- --noEmit
+npm run test:database
+npx expo export --platform all
+```
 
-Join our community of developers creating universal apps.
+Après une modification de configuration native ou des icônes, reconstruire l’application iOS/Android pour voir le nouveau nom et les nouveaux visuels sur les installations natives.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Documentation
+
+Voir [`PROJECT_DOCUMENTATION.md`](./PROJECT_DOCUMENTATION.md) pour l’architecture, les routes, le stockage local et les détails techniques.

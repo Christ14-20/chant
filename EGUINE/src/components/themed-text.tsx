@@ -66,7 +66,7 @@ const styles = createThemedStyles({
   linkPrimary: {
     lineHeight: 30,
     fontSize: 14,
-    color: '#0A1F44',
+    color: '#7A1F3D',
   },
   code: {
     fontFamily: Fonts.mono,

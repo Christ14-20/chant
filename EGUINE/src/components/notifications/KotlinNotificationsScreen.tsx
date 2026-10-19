@@ -9,7 +9,7 @@ import { goBackSafely } from '@/utils/navigation';
 import { useAppStore } from '@/store/useAppStore';
 import { ActionColors } from '@/constants/theme';
 
-const COLORS = { background: '#FFFFFF', surface: '#FFFFFF', navy: '#0A1F44', gold: '#7A1F3D', text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF', blue: '#0A1F44', rose: '#7A1F3D', orange: '#7A1F3D', system: '#0A1F44' };
+const COLORS = { background: '#FFFFFF', surface: '#FFFFFF', navy: '#725A61', gold: '#7A1F3D', text: '#000000', muted: '#4A4A4A', border: '#E5E5E5', blue: '#725A61', rose: '#7A1F3D', orange: '#7A1F3D', system: '#725A61' };
 
 type NotificationType = 'CHANT' | 'MESSE' | 'ANNONCE' | 'PRIERE' | 'SYSTEME';
 type NotificationItem = { id: string; title: string; message: string; date: string; isRead: boolean; type: NotificationType };
@@ -30,7 +30,7 @@ function groupForDate(date: string): string {
 }
 
 export default function KotlinNotificationsScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const notificationsEnabled = useAppStore((state) => state.notificationsEnabled);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -64,12 +64,12 @@ export default function KotlinNotificationsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={21} color={COLORS.navy} />
+          <MaterialCommunityIcons name="arrow-left" size={21} color={theme.textSecondary} />
         </Pressable>
         <Text style={styles.topTitle}>Notifications</Text>
         {notificationsEnabled && (
           <Pressable accessibilityRole="button" accessibilityLabel="Tout marquer comme lu" onPress={markAllRead} style={styles.markAllButton}>
-            <MaterialCommunityIcons name="check-all" size={22} color={COLORS.navy} />
+            <MaterialCommunityIcons name="check-all" size={22} color={theme.textSecondary} />
           </Pressable>
         )}
       </View>
@@ -87,13 +87,13 @@ export default function KotlinNotificationsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         {!notificationsEnabled ? (
           <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="bell-off-outline" size={46} color={`${COLORS.muted}80`} />
+            <MaterialCommunityIcons name="bell-off-outline" size={46} color={theme.textSecondary} />
             <Text style={styles.emptyTitle}>Notifications désactivées</Text>
             <Text style={styles.emptySubtitle}>Réactivez les notifications dans Réglages pour consulter les alertes de l’application.</Text>
           </View>
         ) : grouped.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="bell-outline" size={46} color={`${COLORS.muted}80`} />
+            <MaterialCommunityIcons name="bell-outline" size={46} color={theme.textSecondary} />
             <Text style={styles.emptyTitle}>Aucune notification</Text>
             <Text style={styles.emptySubtitle}>Tu es à jour ! Les nouvelles notifications apparaîtront ici.</Text>
           </View>
@@ -113,7 +113,7 @@ export default function KotlinNotificationsScreen() {
           <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={() => setMenuId(null)} style={styles.scrim} />
           <View style={styles.menuSheet}>
             <Pressable onPress={() => { if (menuId) markRead(menuId); setMenuId(null); }} style={styles.menuOption}>
-              <MaterialCommunityIcons name="check" size={20} color={COLORS.text} />
+              <MaterialCommunityIcons name="check" size={20} color={theme.textSecondary} />
               <Text style={styles.menuLabel}>Marquer comme lu</Text>
             </Pressable>
             <Pressable onPress={() => { if (menuId) removeNotification(menuId); setMenuId(null); }} style={styles.menuOption}>
@@ -128,6 +128,7 @@ export default function KotlinNotificationsScreen() {
 }
 
 function NotificationCard({ item, onRead, onMenu }: { item: NotificationItem; onRead: () => void; onMenu: () => void }) {
+  const theme = useTheme();
   const style = TYPE_STYLE[item.type];
   return (
     <View style={[styles.notificationCard, item.isRead && styles.notificationRead]}>
@@ -149,7 +150,7 @@ function NotificationCard({ item, onRead, onMenu }: { item: NotificationItem; on
         </View>
       </Pressable>
       <Pressable accessibilityRole="button" accessibilityLabel={`Options ${item.title}`} onPress={onMenu} style={styles.menuButton}>
-        <MaterialCommunityIcons name="dots-vertical" size={17} color={COLORS.muted} />
+        <MaterialCommunityIcons name="dots-vertical" size={17} color={theme.textSecondary} />
       </Pressable>
     </View>
   );

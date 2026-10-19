@@ -389,7 +389,7 @@ export default function ChantPersonnelDetailScreen() {
       </ScrollView>
 
       <Modal visible={imageIndex !== null} animationType="fade" onRequestClose={() => setImageIndex(null)}>
-        <SafeAreaView style={[styles.modal, { backgroundColor: '#0A1F44' }]}>
+        <SafeAreaView style={[styles.modal, { backgroundColor: theme.background }]}>
           {imageIndex !== null && (
             <>
               <View style={styles.modalHeader}>
@@ -482,7 +482,7 @@ const styles = createThemedStyles({
   title: { fontSize: 25, fontWeight: '800', marginTop: 19 },
   metadata: { fontSize: 12, textTransform: 'capitalize', marginTop: 5, lineHeight: 18 },
   resourcesMenuButton: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 13, marginTop: 16, borderRadius: 13, backgroundColor: '#7A1F3D10' },
-  resourcesMenuButtonText: { flex: 1, color: '#0A1F44', fontSize: 12, fontWeight: '700' },
+  resourcesMenuButtonText: { flex: 1, color: '#000000', fontSize: 12, fontWeight: '700' },
   section: { marginTop: 25, gap: 9 },
   sectionTitle: { fontSize: 17, fontWeight: '800' },
   audioRow: { minHeight: 66, borderRadius: 13, borderWidth: 1, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 9 },

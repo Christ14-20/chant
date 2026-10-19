@@ -9,16 +9,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackSafely } from '@/utils/navigation';
 import { useAppStore } from '@/store/useAppStore';
 
-const COLORS = { background: '#0A1F44', card: '#0A1F44', divider: '#0A1F44', gold: '#7A1F3D', text: '#FFFFFF', secondary: '#0A1F44', tertiary: '#0A1F44', red: '#7A1F3D' };
+const COLORS = { background: '#FFFFFF', card: '#FFFFFF', divider: '#E5E5E5', gold: '#7A1F3D', text: '#000000', secondary: '#4A4A4A', tertiary: '#777777', red: '#7A1F3D' };
 
 const CONTENT_ITEMS = [
   { icon: 'heart-outline', color: '#7A1F3D', title: 'Mes favoris', subtitle: 'Vos chants et prières sauvegardés', route: '/favoris' as const },
-  { icon: 'history', color: '#0A1F44', title: 'Mon historique', subtitle: 'Chants et préparations de Messe', route: '/historique' as const },
+  { icon: 'history', color: '#725A61', title: 'Mon historique', subtitle: 'Chants et préparations de Messe', route: '/historique' as const },
 ];
 const ROLE_LABELS = { fidelle: 'Fidèle', choriste: 'Choriste', paroisse: 'Paroisse', admin: 'Administrateur' } as const;
 
 export default function ProfileScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const user = useAppStore((state) => state.user);
   const chants = useAppStore((state) => state.chants);
@@ -38,11 +38,11 @@ export default function ProfileScreen() {
     { title: 'PRÉFÉRENCES', items: [
       { icon: 'lock-outline', color: COLORS.gold, title: 'Se connecter / Authentification', subtitle: 'Accéder à votre compte choriste', route: '/connexion' as const },
       { icon: 'bell-outline', color: COLORS.gold, title: 'Notifications', subtitle: 'Rappels, nouveautés', route: '/notifications' as const },
-      { icon: 'cog-outline', color: '#0A1F44', title: 'Paramètres', subtitle: 'Compte, confidentialité', route: '/parametres' as const },
+      { icon: 'cog-outline', color: '#725A61', title: 'Paramètres', subtitle: 'Compte, confidentialité', route: '/parametres' as const },
     ] },
     { title: 'SUPPORT', items: [
-      { icon: 'help-circle-outline', color: '#0A1F44', title: 'Aide & FAQ', subtitle: 'Questions fréquentes', route: '/aide' as const },
-      { icon: 'information-outline', color: '#0A1F44', title: 'À propos', subtitle: 'eGuine v1.2.0' },
+      { icon: 'help-circle-outline', color: '#725A61', title: 'Aide & FAQ', subtitle: 'Questions fréquentes', route: '/aide' as const },
+      { icon: 'information-outline', color: '#725A61', title: 'À propos', subtitle: 'Cantique Guinée v1.2.0' },
     ] },
   ];
 
@@ -56,32 +56,32 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.topAction}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.text} />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={theme.text} />
         </Pressable>
         <Text style={styles.topTitle}>Mon profil</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => router.push('/notifications')} style={styles.topAction}>
-          <MaterialCommunityIcons name="bell-outline" size={21} color={COLORS.text} />
+          <MaterialCommunityIcons name="bell-outline" size={21} color={theme.text} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Paramètres" onPress={() => router.push('/parametres')} style={styles.topAction}>
-          <MaterialCommunityIcons name="cog-outline" size={21} color={COLORS.text} />
+          <MaterialCommunityIcons name="cog-outline" size={21} color={theme.text} />
         </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.profileCard}>
-          <LinearGradient colors={['#0A1F44', '#0A1F44', '#0A1F44']} style={styles.cover}>
+          <LinearGradient colors={['#7A1F3D', '#4F1027', '#241018']} style={styles.cover}>
             <View style={styles.roleBadge}>
-              <MaterialCommunityIcons name="music-note" size={13} color={COLORS.background} />
+              <MaterialCommunityIcons name="music-note" size={13} color={theme.background} />
               <Text style={styles.roleBadgeLabel}>{accountLabel.toLocaleUpperCase()}</Text>
             </View>
           </LinearGradient>
           <View style={styles.profileDetails}>
             <View style={styles.profileActionsRow}>
               <View style={styles.avatarWrap}>
-                {user?.profileImage ? <Image source={{ uri: user.profileImage }} style={styles.avatarImage} /> : <LinearGradient colors={['#0A1F44', '#0A1F44']} style={styles.avatar}><Text style={styles.avatarInitials}>{initials}</Text></LinearGradient>}
+                {user?.profileImage ? <Image source={{ uri: user.profileImage }} style={styles.avatarImage} /> : <LinearGradient colors={['#7A1F3D', '#4F1027']} style={styles.avatar}><Text style={styles.avatarInitials}>{initials}</Text></LinearGradient>}
               </View>
               <Pressable accessibilityRole="button" onPress={() => {}} style={styles.editButton}>
-                <MaterialCommunityIcons name="pencil-outline" size={15} color={COLORS.text} />
+                <MaterialCommunityIcons name="pencil-outline" size={15} color={theme.text} />
                 <Text style={styles.editLabel}>Modifier</Text>
               </Pressable>
             </View>
@@ -124,7 +124,7 @@ export default function ProfileScreen() {
             <Text style={styles.logoutLabel}>Se déconnecter</Text>
           </Pressable>
         )}
-        <Text style={styles.footer}>eGuine</Text>
+        <Text style={styles.footer}>Cantique Guinée</Text>
       </ScrollView>
 
       <Modal visible={logoutVisible} transparent animationType="fade" onRequestClose={() => setLogoutVisible(false)}>
@@ -150,12 +150,13 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 function MenuItem({ icon, color, title, subtitle, badge, onPress }: { icon: string; color: string; title: string; subtitle: string; badge?: string; onPress?: () => void }) {
+  const theme = useTheme();
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={styles.menuRow}>
       <View style={[styles.menuIcon, { backgroundColor: `${color}26` }]}><MaterialCommunityIcons name={icon as any} size={21} color={color} /></View>
       <View style={styles.menuCopy}><Text numberOfLines={1} style={styles.menuTitle}>{title}</Text><Text numberOfLines={1} style={styles.menuSubtitle}>{subtitle}</Text></View>
       {badge && <View style={[styles.menuBadge, { backgroundColor: `${color}30` }]}><Text style={[styles.menuBadgeText, { color }]}>{badge}</Text></View>}
-      <MaterialCommunityIcons name="chevron-right" size={20} color={COLORS.tertiary} />
+      <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
     </Pressable>
   );
 }

@@ -9,7 +9,7 @@ import { goBackTo } from '@/utils/navigation';
 import { countChants } from '@/database/chant-database';
 import { useLocalChantSearch } from '@/hooks/use-local-chant-search';
 
-const COLORS = { background: '#FFFFFF', card: '#FFFFFF', gold: '#0A1F44', text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF', teal: '#0A1F44' };
+const COLORS = { background: '#FFFFFF', card: '#FFFFFF', gold: '#7A1F3D', text: '#000000', muted: '#4A4A4A', border: '#E5E5E5', teal: '#725A61' };
 const EMPTY_COLLECTIONS: { id: string; title: string; type: string }[] = [];
 
 const COLLECTIONS: Record<string, { id: string; title: string; type: string }[]> = {
@@ -70,7 +70,7 @@ function collectionOptions(type: string, id: string) {
 }
 
 export default function ChantCategoryScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const { type = 'moment', id = 'all' } = useLocalSearchParams<{ type: string; id: string }>();
   const normalizedType = type.toLocaleLowerCase();
@@ -115,7 +115,7 @@ export default function ChantCategoryScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={() => goBackTo('/chants')} style={styles.backButton}>
-          <SymbolView name="chevron.left" size={18} tintColor={COLORS.text} />
+          <SymbolView name="chevron.left" size={18} tintColor={theme.textSecondary} />
         </Pressable>
         <Text numberOfLines={1} style={styles.topTitle}>{isCollectionList ? title : `Chants · ${title}`}</Text>
         <View style={styles.backButton} />
@@ -136,7 +136,7 @@ export default function ChantCategoryScreen() {
                   <Text style={styles.collectionTitle}>{collection.title}</Text>
                   <Text style={styles.collectionMeta}>{count} chant{count === 1 ? '' : 's'}</Text>
                 </View>
-                <SymbolView name="chevron.right" size={15} tintColor={COLORS.muted} />
+                <SymbolView name="chevron.right" size={15} tintColor={theme.textSecondary} />
               </Pressable>
             );
           })
@@ -155,7 +155,7 @@ export default function ChantCategoryScreen() {
                   <Text numberOfLines={1} style={styles.collectionTitle}>{chant.titre}</Text>
                   <Text style={styles.collectionMeta}>{chant.langue.toUpperCase()} · {chant.auteur || 'Chorale eGuine'}</Text>
                 </View>
-                <SymbolView name="chevron.right" size={15} tintColor={COLORS.muted} />
+                <SymbolView name="chevron.right" size={15} tintColor={theme.textSecondary} />
               </Pressable>
             ))}
             {hasMore && (
@@ -166,7 +166,7 @@ export default function ChantCategoryScreen() {
           </>
         ) : (
           <View style={styles.emptyState}>
-            <SymbolView name="music.note.list" size={38} tintColor={COLORS.muted} />
+            <SymbolView name="music.note.list" size={38} tintColor={theme.textSecondary} />
             <Text style={styles.emptyTitle}>Aucun chant dans cette sélection</Text>
           </View>
         )}
@@ -183,7 +183,7 @@ const styles = createThemedStyles({
   content: { gap: 8, padding: 14, paddingBottom: 32 },
   loadMore: { alignItems: 'center', paddingVertical: 14 },
   loadMoreLabel: { color: COLORS.gold, fontSize: 14, fontWeight: '700' },
-  subtitle: { marginBottom: 8, color: '#0A1F44B3', fontSize: 13, lineHeight: 19 },
+  subtitle: { marginBottom: 8, color: '#4A4A4A', fontSize: 13, lineHeight: 19 },
   collectionRow: { minHeight: 72, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 11, backgroundColor: COLORS.card },
   collectionIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 9, backgroundColor: `${COLORS.teal}55` },
   collectionCopy: { flex: 1, gap: 4 },

@@ -10,6 +10,7 @@ import type { ChantHistoryEntry } from '@/database/chant-database';
 import type { Celebration } from '@/types';
 import { goBackSafely } from '@/utils/navigation';
 import { ActionColors } from '@/constants/theme';
+import { createThemedStyles } from '@/utils/themed-styles';
 
 const COLORS = {
   background: '#FFFFFF',
@@ -47,7 +48,7 @@ function getPreparationChantCount(celebration: Celebration): number {
 }
 
 export default function HistoryScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const chants = useAppStore((state) => state.chants);
   const personalChants = useAppStore((state) => state.personalChants);
@@ -131,7 +132,7 @@ export default function HistoryScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.topAction}>
-          <MaterialCommunityIcons name="chevron-left" size={27} color={COLORS.ink} />
+          <MaterialCommunityIcons name="chevron-left" size={27} color={theme.textSecondary} />
         </Pressable>
         <View style={styles.headerCopy}>
           <Text style={styles.title}>Mon historique</Text>
@@ -193,7 +194,7 @@ export default function HistoryScreen() {
                 }}
                 style={styles.removeButton}
               >
-                <MaterialCommunityIcons name="close" size={19} color={COLORS.muted} />
+                <MaterialCommunityIcons name="close" size={19} color={theme.textSecondary} />
               </Pressable>
             </View>
           );
@@ -254,7 +255,7 @@ export default function HistoryScreen() {
           />
           {searchQuery.length > 0 && (
             <Pressable accessibilityRole="button" accessibilityLabel="Effacer la recherche" onPress={() => setSearchQuery('')}>
-              <MaterialCommunityIcons name="close-circle" size={18} color={COLORS.muted} />
+              <MaterialCommunityIcons name="close-circle" size={18} color={theme.textSecondary} />
             </Pressable>
           )}
         </View>
@@ -340,7 +341,7 @@ export default function HistoryScreen() {
               onPress={() => removeRecentActivity(activity.path)}
               style={styles.removeButton}
             >
-              <MaterialCommunityIcons name="close" size={19} color={COLORS.muted} />
+              <MaterialCommunityIcons name="close" size={19} color={theme.textSecondary} />
             </Pressable>
           </View>
         ))}
@@ -349,7 +350,7 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   topBar: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12 },
   topAction: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },

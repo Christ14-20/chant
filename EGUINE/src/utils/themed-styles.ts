@@ -16,41 +16,68 @@ function isAccent([red, green, blue]: [number, number, number]): boolean {
   return red > 90 && red < 160 && green < 70 && blue > 35 && blue < 100;
 }
 
-function darkColor(property: string, value: unknown): unknown {
+function isNavy([red, green, blue]: [number, number, number]): boolean {
+  return red === 10 && green === 31 && blue === 68;
+}
+
+function withAccentAlpha(value: string): string {
+  const hex = value.slice(1);
+  if (hex.length === 8) return `#7A1F3D${hex.slice(6)}`;
+  if (hex.length === 4) return `#7A1F3D${hex[3].repeat(2)}`;
+  return '#7A1F3D';
+}
+
+function themedColor(property: string, value: unknown, dark: boolean): unknown {
   if (typeof value !== 'string' || !property.toLowerCase().includes('color')) return value;
   const rgb = parseHexColor(value);
   if (!rgb) return value;
   const [red, green, blue] = rgb;
   const brightness = (red * 299 + green * 587 + blue * 114) / 1000;
+  const navy = isNavy(rgb);
+
+  if (!dark) {
+    if (!navy) return value;
+    if (property === 'backgroundColor') return withAccentAlpha(value);
+    if (property.toLowerCase().includes('border')) return '#E5E5E5';
+    return '#000000';
+  }
 
   if (property === 'backgroundColor') {
-    if (brightness > 225) return '#0A1F44';
-    if (brightness > 180 && !isAccent(rgb)) return '#12294D';
+    if (navy) return withAccentAlpha(value);
+    if (brightness > 225) {
+      const hex = value.slice(1);
+      return hex.length === 8 && hex.slice(6).toLowerCase() !== 'ff' ? value : '#000000';
+    }
+    if (brightness > 180 && !isAccent(rgb)) return '#111111';
     return value;
   }
   if (property.toLowerCase().includes('border')) {
-    if (brightness < 100) return '#FFFFFF66';
-    if (brightness > 180) return '#FFFFFF40';
+    if (navy || brightness < 100) return '#FFFFFF26';
+    if (brightness > 180) return '#FFFFFF1F';
     return value;
   }
   if (property === 'shadowColor') return '#000000';
   if (isAccent(rgb)) return '#D98BA0';
+  if (navy) return '#F5F5F5';
   if (brightness < 150) return '#FFFFFF';
-  if (brightness < 205) return '#C9D4E4';
+  if (brightness < 205) return '#B8B8B8';
   return value;
 }
 
-function transformStyles<T>(value: T): T {
-  if (Array.isArray(value)) return value.map((item) => transformStyles(item)) as T;
+function transformStyles<T>(value: T, dark: boolean): T {
+  if (Array.isArray(value)) return value.map((item) => transformStyles(item, dark)) as T;
   if (value === null || typeof value !== 'object') return value;
   return Object.fromEntries(
-    Object.entries(value).map(([key, child]) => [key, typeof child === 'string' ? darkColor(key, child) : transformStyles(child)])
+    Object.entries(value).map(([key, child]) => [
+      key,
+      typeof child === 'string' ? themedColor(key, child, dark) : transformStyles(child, dark),
+    ])
   ) as T;
 }
 
 export function createThemedStyles<T extends StyleSheet.NamedStyles<T>>(definitions: T): T {
-  const lightStyles = StyleSheet.create(definitions);
-  const darkStyles = StyleSheet.create(transformStyles(definitions));
+  const lightStyles = StyleSheet.create(transformStyles(definitions, false));
+  const darkStyles = StyleSheet.create(transformStyles(definitions, true));
 
   return new Proxy(lightStyles, {
     get(target, property, receiver) {

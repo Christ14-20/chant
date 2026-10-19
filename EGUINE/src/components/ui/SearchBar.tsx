@@ -25,7 +25,7 @@ export function SearchBar({
   value,
   onChangeText,
   placeholder = 'Rechercher...',
-  placeholderTextColor = '#0A1F44',
+  placeholderTextColor,
   autoFocus = false,
   onFocus,
   onBlur,
@@ -101,7 +101,7 @@ export function SearchBar({
           value={localValue}
           onChangeText={handleChangeText}
           placeholder={placeholder}
-          placeholderTextColor={placeholderTextColor}
+          placeholderTextColor={placeholderTextColor ?? theme.textSecondary}
           autoFocus={autoFocus}
           onFocus={handleFocus}
           onBlur={handleBlur}

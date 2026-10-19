@@ -5,6 +5,7 @@ import { ActivityIndicator, Appearance, Platform, Pressable, Text, View } from '
 import { Stack, usePathname } from 'expo-router';
 import { useAppStore } from '@/store/useAppStore';
 import { useStoreHydrated } from '@/hooks/use-store-hydrated';
+import { useTheme } from '@/hooks/use-theme';
 import {
   initializeLocalChantDatabase,
   replaceFavorites,
@@ -13,6 +14,7 @@ import {
 
 export default function RootLayout() {
   const themeMode = useAppStore((state) => state.themeMode);
+  const theme = useTheme();
   const pathname = usePathname();
   const recordRecentActivity = useAppStore((state) => state.recordRecentActivity);
   const isHydrated = useStoreHydrated();
@@ -82,16 +84,16 @@ export default function RootLayout() {
 
   if (!databaseReady) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#FFFFFF' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: theme.background }}>
         {databaseError ? (
           <>
-            <Text accessibilityRole="alert" style={{ color: '#0A1F44', fontSize: 15, textAlign: 'center' }}>
+            <Text accessibilityRole="alert" style={{ color: theme.text, fontSize: 15, textAlign: 'center' }}>
               {databaseError}
             </Text>
             <Pressable
               accessibilityRole="button"
               onPress={() => setRetry((value) => value + 1)}
-              style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10, backgroundColor: '#7A1F3D' }}
+              style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10, backgroundColor: theme.primary }}
             >
               <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Réessayer</Text>
             </Pressable>
@@ -99,7 +101,7 @@ export default function RootLayout() {
         ) : (
           <>
             <ActivityIndicator color="#7A1F3D" />
-            <Text style={{ marginTop: 12, color: '#0A1F44' }}>Ouverture de la bibliothèque hors connexion…</Text>
+            <Text style={{ marginTop: 12, color: theme.text }}>Ouverture de la bibliothèque hors connexion…</Text>
           </>
         )}
       </View>

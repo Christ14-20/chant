@@ -115,7 +115,7 @@ const styles = createThemedStyles({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: '#0A1F44',
+    backgroundColor: '#7A1F3D',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,

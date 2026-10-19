@@ -5,16 +5,16 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackSafely } from '@/utils/navigation';
 
-const COLORS = { background: '#FFFFFF', surface: '#FFFFFF', navy: '#0A1F44', gold: '#7A1F3D', text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF', green: '#7A1F3D' };
+const COLORS = { background: '#FFFFFF', surface: '#FFFFFF', navy: '#0A1F44', gold: '#7A1F3D', text: '#0A1F44', muted: '#0A1F44', border: '#E5E5E5', green: '#7A1F3D' };
 
 export default function KotlinLectureScreen() {
-  useTheme();
+  const theme = useTheme();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
-          <MaterialCommunityIcons name="arrow-left" size={21} color={COLORS.navy} />
+          <MaterialCommunityIcons name="arrow-left" size={21} color={theme.textSecondary} />
         </Pressable>
         <Text style={styles.topTitle}>Liturgie</Text>
         <View style={styles.backButton} />

@@ -145,8 +145,9 @@ const FilterButton = ({
   onPress: () => void;
   onClear: () => void;
   active?: boolean;
-}) => (
-  <Pressable
+}) => {
+  const theme = useTheme();
+  return <Pressable
     onPress={onPress}
     style={({ pressed }) => [
       styles.filterButton,
@@ -157,7 +158,7 @@ const FilterButton = ({
     <ThemedText style={[styles.filterButtonText, active && styles.filterButtonTextActive]}>
       {value || label}
     </ThemedText>
-    <SymbolView name="chevron.down" size={14} tintColor={active ? '#0A1F44' : '#0A1F44'} />
+    <SymbolView name="chevron.down" size={14} tintColor={theme.textSecondary} />
     {value && (
       <Pressable
         onPress={onClear}
@@ -166,11 +167,11 @@ const FilterButton = ({
           pressed && styles.filterClearPressed,
         ]}
       >
-        <SymbolView name="xmark.circle.fill" size={16} tintColor="#0A1F44" />
+        <SymbolView name="xmark.circle.fill" size={16} tintColor={theme.textSecondary} />
       </Pressable>
     )}
-  </Pressable>
-);
+  </Pressable>;
+};
 
 // ============ COMPOSANT PRINCIPAL ============
 export default function PrieresScreen() {
@@ -356,7 +357,7 @@ export default function PrieresScreen() {
               onPress={onClose}
               style={({ pressed }) => [styles.modalClose, pressed && styles.modalClosePressed]}
             >
-              <SymbolView name="xmark" size={20} tintColor="#0A1F44" />
+              <SymbolView name="xmark" size={20} tintColor={theme.textSecondary} />
             </Pressable>
           </ThemedView>
           
@@ -378,7 +379,7 @@ export default function PrieresScreen() {
                   {label}
                 </ThemedText>
                 {selected === key && (
-                  <SymbolView name="checkmark" size={18} tintColor="#0A1F44" />
+                  <SymbolView name="checkmark" size={18} tintColor={theme.textSecondary} />
                 )}
                 {counts[key] !== undefined && (
                   <ThemedText style={styles.modalItemCount}>{counts[key]}</ThemedText>
@@ -413,7 +414,7 @@ export default function PrieresScreen() {
               <SymbolView
                 name={viewMode === 'list' ? 'square.grid.2x2' : 'list.bullet'}
                 size={22}
-                tintColor="#0A1F44"
+                tintColor={theme.textSecondary}
               />
             </Pressable>
           </ThemedView>
@@ -426,7 +427,7 @@ export default function PrieresScreen() {
 
         {/* Barre de recherche toujours visible */}
         <ThemedView style={[styles.searchBar, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
-          <SymbolView name="magnifyingglass" size={18} tintColor="#0A1F44" />
+          <SymbolView name="magnifyingglass" size={18} tintColor={theme.textSecondary} />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
@@ -440,7 +441,7 @@ export default function PrieresScreen() {
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery('')}>
-              <SymbolView name="xmark.circle.fill" size={18} tintColor="#0A1F44" />
+              <SymbolView name="xmark.circle.fill" size={18} tintColor={theme.textSecondary} />
             </Pressable>
           )}
         </ThemedView>
@@ -491,7 +492,7 @@ export default function PrieresScreen() {
             <SymbolView
               name="heart.fill"
               size={16}
-              tintColor={showFavoritesOnly ? '#7A1F3D' : '#0A1F44'}
+              tintColor={showFavoritesOnly ? '#7A1F3D' : theme.textSecondary}
             />
           </Pressable>
 
@@ -503,14 +504,14 @@ export default function PrieresScreen() {
             ]}
             onPress={() => setShowSortOptions(!showSortOptions)}
           >
-            <SymbolView name="arrow.up.arrow.down" size={16} tintColor="#0A1F44" />
+            <SymbolView name="arrow.up.arrow.down" size={16} tintColor={theme.textSecondary} />
             <ThemedText style={styles.sortButtonText}>
               {SORT_OPTIONS.find((s) => s.key === sortBy)?.label || 'Trier'}
             </ThemedText>
             <SymbolView
               name={showSortOptions ? 'chevron.up' : 'chevron.down'}
               size={12}
-              tintColor="#0A1F44"
+              tintColor={theme.textSecondary}
             />
           </Pressable>
 
@@ -523,7 +524,7 @@ export default function PrieresScreen() {
                 pressed && styles.clearFiltersButtonPressed,
               ]}
             >
-              <SymbolView name="xmark" size={14} tintColor="#0A1F44" />
+              <SymbolView name="xmark" size={14} tintColor={theme.textSecondary} />
               <ThemedText style={styles.clearFiltersText}>Effacer</ThemedText>
             </Pressable>
           )}
@@ -546,7 +547,7 @@ export default function PrieresScreen() {
               <SymbolView
                 name={option.icon}
                 size={16}
-                tintColor={sortBy === option.key ? '#0A1F44' : '#0A1F44'}
+                tintColor={theme.textSecondary}
               />
               <ThemedText
                 style={[
@@ -557,7 +558,7 @@ export default function PrieresScreen() {
                 {option.label}
               </ThemedText>
               {sortBy === option.key && (
-                <SymbolView name="checkmark" size={14} tintColor="#0A1F44" />
+                <SymbolView name="checkmark" size={14} tintColor={theme.textSecondary} />
               )}
             </Pressable>
           ))}
@@ -571,7 +572,7 @@ export default function PrieresScreen() {
       <SymbolView
         name={searchQuery ? 'magnifyingglass' : 'heart.slash'}
         size={56}
-        tintColor="#0A1F44"
+        tintColor={theme.textSecondary}
       />
       <ThemedText style={styles.emptyTitle}>
         {searchQuery ? 'Aucun résultat' : 'Aucune prière'}
@@ -738,7 +739,7 @@ const styles = createThemedStyles({
   },
   filterButtonActive: {
     borderColor: '#0A1F44',
-    backgroundColor: 'rgba(10,31,68,0.08)',
+    backgroundColor: 'rgba(122,31,61,0.08)',
   },
   filterButtonPressed: {
     opacity: 0.7,
@@ -837,7 +838,7 @@ const styles = createThemedStyles({
     borderRadius: wp(1),
   },
   sortOptionActive: {
-    backgroundColor: 'rgba(10,31,68,0.08)',
+    backgroundColor: 'rgba(122,31,61,0.08)',
   },
   sortOptionText: {
     flex: 1,
@@ -879,7 +880,7 @@ const styles = createThemedStyles({
     paddingHorizontal: wp(4),
     paddingVertical: wp(2),
     borderRadius: wp(2),
-    backgroundColor: 'rgba(10,31,68,0.12)',
+    backgroundColor: 'rgba(122,31,61,0.12)',
     marginTop: wp(2),
   },
   emptyButtonText: {
@@ -930,7 +931,7 @@ const styles = createThemedStyles({
     borderRadius: 12,
   },
   modalItemActive: {
-    backgroundColor: 'rgba(10,31,68,0.08)',
+    backgroundColor: 'rgba(122,31,61,0.08)',
   },
   modalItemPressed: {
     opacity: 0.7,

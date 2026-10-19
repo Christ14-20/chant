@@ -22,15 +22,15 @@ type EventFilter = 'Tous' | 'Messe' | 'Catéchisme' | 'Réunion' | 'Personnel' |
 const COLORS = {
   background: '#FFFFFF',
   surface: '#FFFFFF',
-  primary: '#0A1F44',
-  navy: '#0A1F44',
+  primary: '#725A61',
+  navy: '#725A61',
   gold: '#7A1F3D',
   text: '#0A1F44',
   muted: '#0A1F44',
-  border: '#FFFFFF',
+  border: '#E5E5E5',
   green: '#7A1F3D',
   red: '#7A1F3D',
-  purple: '#0A1F44',
+  purple: '#725A61',
   orange: '#7A1F3D',
   rose: '#7A1F3D',
 };
@@ -57,7 +57,7 @@ const TYPE_LABELS: Record<EventType, string> = {
 };
 
 export default function AgendaScreen() {
-  useTheme();
+  const theme = useTheme();
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState<EventFilter>('Tous');
   const [selectedDayIndex, setSelectedDayIndex] = useState(() => (new Date().getDay() + 6) % 7);
@@ -109,7 +109,7 @@ export default function AgendaScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
-          <SymbolView name="chevron.left" size={18} tintColor={COLORS.text} />
+          <SymbolView name="chevron.left" size={18} tintColor={theme.textSecondary} />
         </Pressable>
         <Text style={styles.topTitle}>Mon agenda</Text>
         <View style={styles.backButton} />
@@ -117,11 +117,11 @@ export default function AgendaScreen() {
 
       <View style={styles.monthRow}>
         <Pressable accessibilityRole="button" accessibilityLabel="Mois précédent" onPress={() => { setMonthOffset((value) => value - 1); setSelectedDayIndex(0); }} style={styles.monthArrow}>
-          <SymbolView name="chevron.left" size={16} tintColor={COLORS.text} />
+          <SymbolView name="chevron.left" size={16} tintColor={theme.textSecondary} />
         </Pressable>
         <Text style={styles.monthTitle}>{monthLabel}</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Mois suivant" onPress={() => { setMonthOffset((value) => value + 1); setSelectedDayIndex(0); }} style={styles.monthArrow}>
-          <SymbolView name="chevron.right" size={16} tintColor={COLORS.text} />
+          <SymbolView name="chevron.right" size={16} tintColor={theme.textSecondary} />
         </Pressable>
         <Pressable onPress={() => { setMonthOffset(0); setSelectedDayIndex((new Date().getDay() + 6) % 7); }} style={styles.todayButton}>
           <Text style={styles.todayLabel}>Aujourd’hui</Text>
@@ -168,7 +168,7 @@ export default function AgendaScreen() {
         {selectedEvents.length === 0 ? (
           <View style={styles.emptyDay}>
             <View style={styles.emptyIcon}>
-              <SymbolView name="calendar" size={23} tintColor={COLORS.muted} />
+              <SymbolView name="calendar" size={23} tintColor={theme.textSecondary} />
             </View>
             <Text style={styles.emptyTitle}>Aucun événement prévu</Text>
             <Text style={styles.emptyText}>Ajoutez un événement à cette journée.</Text>
@@ -220,7 +220,7 @@ const styles = createThemedStyles({
   monthRow: { minHeight: 55, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 12 },
   monthArrow: { width: 32, height: 36, alignItems: 'center', justifyContent: 'center' },
   monthTitle: { color: COLORS.text, fontSize: 16, fontWeight: '700' },
-  todayButton: { marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: '#0A1F4412' },
+  todayButton: { marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: '#F4E9ED' },
   todayLabel: { color: COLORS.primary, fontSize: 12, fontWeight: '700' },
   calendarRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10, paddingBottom: 12 },
   dayCell: { flex: 1, minWidth: 36, minHeight: 70, alignItems: 'center', justifyContent: 'center', gap: 5, borderRadius: 12 },

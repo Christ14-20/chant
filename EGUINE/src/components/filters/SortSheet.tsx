@@ -21,16 +21,16 @@ const styles = createThemedStyles({
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
   },
-  sheetTitle: { color: '#0A1F44', fontSize: 19, fontWeight: '700', marginBottom: 10 },
+  sheetTitle: { color: '#000000', fontSize: 19, fontWeight: '700', marginBottom: 10 },
   sortOption: {
     minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#FFFFFF',
+    borderColor: '#E5E5E5',
   },
-  sortLabel: { color: '#0A1F44', fontSize: 13 },
+  sortLabel: { color: '#000000', fontSize: 13 },
   selectedSortLabel: { color: '#7A1F3D', fontWeight: '800' },
 });
 

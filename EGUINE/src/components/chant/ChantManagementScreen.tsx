@@ -10,6 +10,7 @@ import { getChantById, saveCatalogChant, deleteLocalFileIfUnreferenced } from '@
 import { CHANT_CATEGORIES } from '@/database/schema';
 import { useAppStore } from '@/store/useAppStore';
 import { useTheme } from '@/hooks/use-theme';
+import { createThemedStyles } from '@/utils/themed-styles';
 import { saveChantResourceFile } from '@/utils/personal-chant-storage';
 import { sanitizeResourceName, validateChantFile, type ChantFileType, type PickedChantFile } from '@/utils/chant-resource-import-core';
 import type {
@@ -310,7 +311,7 @@ export default function ChantManagementScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.back}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.ink} />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={theme.textSecondary} />
         </Pressable>
         <Text style={styles.headerTitle}>{editing ? 'Gérer le chant' : 'Nouveau chant'}</Text>
         <Pressable accessibilityRole="button" onPress={() => void save()} disabled={saving} style={[styles.saveButton, saving && styles.disabled]}>
@@ -388,7 +389,7 @@ export default function ChantManagementScreen() {
               <MaterialCommunityIcons name={resource.type === 'audio' ? 'music-note' : resource.type === 'pdf' ? 'file-pdf-box' : 'image-outline'} size={22} color={COLORS.accent} />
               <Text numberOfLines={1} style={styles.resourceName}>{resource.nom}</Text>
               <Pressable accessibilityRole="button" accessibilityLabel={`Remplacer ${resource.nom}`} onPress={() => void queuePickedFiles(resource.type === 'audio' ? 'audio' : 'score', resource.id)} style={styles.iconButton}>
-                <MaterialCommunityIcons name="swap-horizontal" size={19} color={COLORS.ink} />
+                <MaterialCommunityIcons name="swap-horizontal" size={19} color={theme.textSecondary} />
               </Pressable>
               <Pressable accessibilityRole="button" accessibilityLabel={`Supprimer ${resource.nom}`} onPress={() => removeSavedResource(resource.id)} style={styles.iconButton}>
                 <MaterialCommunityIcons name="delete-outline" size={19} color={ActionColors.danger} />
@@ -480,7 +481,7 @@ function ActionButton({ label, icon, onPress, disabled = false }: { label: strin
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safe: { flex: 1, backgroundColor: COLORS.bg },
   header: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.border },
   back: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },

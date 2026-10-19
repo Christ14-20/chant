@@ -2,8 +2,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useState, useMemo, useCallback, useRef } from 'react';
 import {
-  Pressable, StyleSheet, RefreshControl, Animated, View,
-  ScrollView, Text, Dimensions,
+  Image, Pressable, StyleSheet, RefreshControl, Animated, View,
+  ScrollView, Text, useWindowDimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -13,21 +13,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '@/store/useAppStore';
 import { ActionColors } from '@/constants/theme';
 
-const { width: SCREEN_W } = Dimensions.get('window');
-
 // ============ DESIGN TOKENS ============
 const TOKENS = {
   paper: '#FFFFFF',
   paperDeep: '#FFFFFF',
   surface: '#FFFFFF',
   ink: '#000000',
-  inkSoft: '#0A1F44',
-  inkMuted: '#0A1F44',
-  inkSubtle: '#0A1F44',
+  inkSoft: '#4A4A4A',
+  inkMuted: '#4A4A4A',
+  inkSubtle: '#777777',
   rule: '#7A1F3D',
   gold: '#7A1F3D',
   goldWash: '#7A1F3D',
-  teal: '#0A1F44',
+  teal: '#725A61',
   pink: '#7A1F3D',
   green: '#7A1F3D',
   purple: '#7A1F3D',
@@ -41,10 +39,10 @@ const LANG_LABELS: Record<string, string> = {
 const CATEGORIE_COLORS: Record<string, string> = {
   entree: '#7A1F3D', kyrie: '#7A1F3D', gloria: '#7A1F3D',
   psaume: '#7A1F3D', acclamation: '#7A1F3D', offertoire: '#7A1F3D',
-  sanctus: '#7A1F3D', agnus_dei: '#7A1F3D', communion: '#0A1F44',
+  sanctus: '#7A1F3D', agnus_dei: '#7A1F3D', communion: '#725A61',
   action_grace: '#7A1F3D', chant_final: '#7A1F3D',
-  louange: '#7A1F3D', adoration: '#7A1F3D', penitence: '#0A1F44',
-  marial: '#7A1F3D', funerailles: '#0A1F44', autre: '#0A1F44',
+  louange: '#7A1F3D', adoration: '#7A1F3D', penitence: '#725A61',
+  marial: '#7A1F3D', funerailles: '#725A61', autre: '#725A61',
 };
 
 const CATEGORIE_LABELS: Record<string, string> = {
@@ -89,8 +87,9 @@ function getActivityIcon(path: string): string {
 
 // ============ ÉCRAN ============
 export default function HomeScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
   const chants = useAppStore((s) => s.chants);
   const favorites = useAppStore((s) => s.favorites);
   const toggleFavorite = useAppStore((s) => s.toggleFavorite);
@@ -176,11 +175,12 @@ export default function HomeScreen() {
           {/* ═══ HEADER ═══ */}
           <View style={styles.header}>
             <View
-              accessibilityLabel="Logo de Chorale eGuine"
+              accessibilityLabel="Logo de Cantique Guinée"
               style={styles.brandMark}
             >
-              <MaterialCommunityIcons name="music-clef-treble" size={23} color="#FFFFFF" />
+              <Image source={require('../../../../assets/images/icon.png')} style={styles.brandImage} resizeMode="contain" />
             </View>
+            <Text style={styles.brandTitle}>Cantique Guinée</Text>
             <View style={styles.headerRight}>
               <Pressable
                 accessibilityRole="button"
@@ -189,10 +189,10 @@ export default function HomeScreen() {
                 hitSlop={8}
                 style={styles.iconBtn}
               >
-                <MaterialCommunityIcons name="history" size={20} color={TOKENS.ink} />
+                <MaterialCommunityIcons name="history" size={20} color={theme.textSecondary} />
               </Pressable>
               <Pressable onPress={() => go('/notifications')} hitSlop={8} style={styles.iconBtn}>
-                <MaterialCommunityIcons name="bell-outline" size={20} color={TOKENS.ink} />
+                <MaterialCommunityIcons name="bell-outline" size={20} color={theme.textSecondary} />
                 {notificationsEnabled && unreadNotifications > 0 && <View style={styles.dot} />}
               </Pressable>
             </View>
@@ -228,7 +228,7 @@ export default function HomeScreen() {
               </View>
               <View style={styles.heroMain}>
                 <LinearGradient
-                  colors={[TOKENS.teal, '#0A1F44']}
+                  colors={['#7A1F3D', '#4F1027']}
                   style={styles.heroArtwork}
                 >
                   <MaterialCommunityIcons name="music-note" size={30} color="#FFFFFF" />
@@ -351,6 +351,7 @@ export default function HomeScreen() {
                     key={chant.id}
                     index={index + 1}
                     chant={chant}
+                    cardWidth={(screenWidth - 54) / 2}
                     isFavorite={favorites.includes(chant.id)}
                     onPress={() => go(`/chant/${chant.id}`)}
                     onPlay={() => playChant(chant.id)}
@@ -388,7 +389,7 @@ export default function HomeScreen() {
                     <LinearGradient
                       colors={[
                         CATEGORIE_COLORS[chant.categorie] || TOKENS.teal,
-                        '#0A1F44',
+                        '#725A61',
                       ]}
                       style={styles.newArtwork}
                     >
@@ -412,7 +413,7 @@ export default function HomeScreen() {
           {/* Pied */}
           <View style={styles.footer}>
             <View style={styles.footerLine} />
-            <MaterialCommunityIcons name="music-clef-treble" size={16} color={TOKENS.inkSubtle} />
+            <MaterialCommunityIcons name="music-clef-treble" size={16} color={theme.textSecondary} />
             <Text style={styles.footerText}>Ad Majorem Dei Gloriam</Text>
             <View style={styles.footerLine} />
           </View>
@@ -453,16 +454,17 @@ function Section({
 }
 
 function TrendingRow({
-  index, chant, isFavorite, onPress, onPlay, onFavorite,
+  index, chant, cardWidth, isFavorite, onPress, onPlay, onFavorite,
 }: {
-  index: number; chant: any; isFavorite: boolean;
+  index: number; chant: any; cardWidth: number; isFavorite: boolean;
   onPress: () => void; onPlay: () => void; onFavorite: () => void;
 }) {
+  const theme = useTheme();
   const heartScale = useRef(new Animated.Value(1)).current;
   const vues = chant.nombre_vues ?? chant.vues ?? 0;
 
   return (
-    <View style={styles.trendingCard}>
+    <View style={[styles.trendingCard, { width: cardWidth }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Ouvrir ${chant.titre}`}
@@ -484,7 +486,7 @@ function TrendingRow({
             {chant.titre}
           </Text>
           <View style={styles.trendingMetaRow}>
-            <MaterialCommunityIcons name="eye-outline" size={11} color={TOKENS.inkMuted} />
+            <MaterialCommunityIcons name="eye-outline" size={11} color={theme.textSecondary} />
             <Text style={styles.trendingMeta}>{vues} vues</Text>
             <Text style={styles.trendingMetaDot}>·</Text>
             <Text style={styles.trendingMeta} numberOfLines={1}>
@@ -522,7 +524,7 @@ function TrendingRow({
               <MaterialCommunityIcons
                 name={isFavorite ? 'heart' : 'heart-outline'}
                 size={18}
-                color={isFavorite ? ActionColors.primary : TOKENS.inkMuted}
+                color={isFavorite ? ActionColors.primary : theme.textSecondary}
               />
             </Animated.View>
           </Pressable>
@@ -540,6 +542,7 @@ function ResumeActivityCard({
   detail: string;
   onPress: () => void;
 }) {
+  const theme = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
@@ -554,7 +557,7 @@ function ResumeActivityCard({
         <Text numberOfLines={1} style={styles.resumeTitle}>{title}</Text>
         <Text numberOfLines={1} style={styles.resumeDetail}>{detail}</Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={22} color={TOKENS.inkMuted} />
+      <MaterialCommunityIcons name="chevron-right" size={22} color={theme.textSecondary} />
     </Pressable>
   );
 }
@@ -580,9 +583,11 @@ const styles = createThemedStyles({
     height: 42,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 14,
-    backgroundColor: TOKENS.teal,
+    borderRadius: 13,
+    overflow: 'hidden',
   },
+  brandImage: { width: 42, height: 42 },
+  brandTitle: { marginLeft: 10, flex: 1, color: TOKENS.ink, fontSize: 16, fontWeight: '800', letterSpacing: -0.3 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchBar: {
     minHeight: 48,
@@ -757,7 +762,6 @@ const styles = createThemedStyles({
   // ═══ TENDANCES ═══
   trendingGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   trendingCard: {
-    width: (SCREEN_W - 54) / 2,
     padding: 8,
     borderRadius: 18,
     backgroundColor: TOKENS.surface,

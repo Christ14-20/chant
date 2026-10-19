@@ -15,6 +15,9 @@ import { getChantById } from '@/database/chant-database';
 import { goBackSafely } from '@/utils/navigation';
 import type { Chant, RessourceChant } from '@/types';
 import { ActionColors } from '@/constants/theme';
+import { createThemedStyles } from '@/utils/themed-styles';
+import { useTheme } from '@/hooks/use-theme';
+import { isVoiceResource } from '@/utils/chant-resources';
 
 type ResourceKind = 'partition' | 'voix' | 'accords';
 type ResourceLink = { id: string; label: string; uri: string };
@@ -55,13 +58,6 @@ const COLORS = {
   separator: '#E7EAF0',
 };
 
-function isVoiceResource(resource: RessourceChant): boolean {
-  return resource.type === 'audio'
-    && (resource.role_audio === 'voix'
-      || Boolean(resource.partie_vocale)
-      || /\b(soprano|alto|tenor|ténor|basse|voix|choeur|chœur)\b/i.test(`${resource.nom} ${resource.uri}`));
-}
-
 function isAvailable(resource: RessourceChant): boolean {
   return resource.availability !== 'missing' && resource.availability !== 'failed';
 }
@@ -76,6 +72,7 @@ async function openResource(uri: string): Promise<void> {
 }
 
 export default function ChantResourceScreen() {
+  const theme = useTheme();
   const router = useRouter();
   const { id, resource: resourceParam } = useLocalSearchParams<{ id: string; resource: string }>();
   const kind: ResourceKind = resourceParam === 'voix' || resourceParam === 'accords'
@@ -182,7 +179,7 @@ export default function ChantResourceScreen() {
           onPress={goBackSafely}
           style={styles.backButton}
         >
-          <MaterialCommunityIcons name="chevron-left" size={27} color={COLORS.ink} />
+          <MaterialCommunityIcons name="chevron-left" size={27} color={theme.textSecondary} />
         </Pressable>
         <View style={styles.headerCopy}>
           <Text numberOfLines={1} style={styles.songTitle}>{chant?.titre ?? 'Ressource du chant'}</Text>
@@ -280,10 +277,16 @@ export default function ChantResourceScreen() {
                     <Pressable
                       key={resource.id}
                       accessibilityRole="button"
-                      onPress={() => void openResource(resource.uri)}
+                      accessibilityLabel={`${playingVoiceId === resource.id && playback.playing ? 'Mettre en pause' : 'Lire'} ${resource.label}`}
+                      accessibilityState={{ selected: playingVoiceId === resource.id && playback.playing }}
+                      onPress={() => void playVoice(resource)}
                       style={styles.openButton}
                     >
-                      <MaterialCommunityIcons name="play" size={16} color={ActionColors.playback} />
+                      <MaterialCommunityIcons
+                        name={playingVoiceId === resource.id && playback.playing ? 'pause' : 'play'}
+                        size={16}
+                        color={ActionColors.playback}
+                      />
                       <Text style={styles.openButtonLabel}>{resource.label}</Text>
                     </Pressable>
                   ))}
@@ -315,7 +318,7 @@ function EmptyResource({ icon, title, detail }: { icon: IconName; title: string;
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   header: {
     minHeight: 64,

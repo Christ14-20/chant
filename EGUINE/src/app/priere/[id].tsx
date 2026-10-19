@@ -13,8 +13,8 @@ import { goBackSafely } from '@/utils/navigation';
 const MOMENT_CONFIG = {
   matin: { icon: 'sun.max.fill', color: '#7A1F3D', label: 'Matin' },
   midi: { icon: 'sun.min.fill', color: '#7A1F3D', label: 'Midi' },
-  soir: { icon: 'moon.fill', color: '#0A1F44', label: 'Soir' },
-  nuit: { icon: 'moon.stars.fill', color: '#0A1F44', label: 'Nuit' },
+  soir: { icon: 'moon.fill', color: '#725A61', label: 'Soir' },
+  nuit: { icon: 'moon.stars.fill', color: '#725A61', label: 'Nuit' },
 } as const;
 
 export default function PriereDetailScreen() {
@@ -44,7 +44,7 @@ export default function PriereDetailScreen() {
         <SymbolView name="exclamationmark.triangle" size={48} tintColor="#7A1F3D" />
         <ThemedText style={styles.errorText}>Prière introuvable</ThemedText>
         <Pressable style={[styles.errorButton, { backgroundColor: theme.backgroundElement }]} onPress={goBackSafely}>
-          <ThemedText style={{ color: '#0A1F44', fontWeight: '600' }}>Retour</ThemedText>
+          <ThemedText style={{ color: theme.textSecondary, fontWeight: '600' }}>Retour</ThemedText>
         </Pressable>
       </ThemedView>
     );
@@ -62,23 +62,23 @@ export default function PriereDetailScreen() {
             style={({ pressed }) => [styles.backBtn, { backgroundColor: theme.backgroundElement }, pressed && { opacity: 0.7 }]}
             onPress={goBackSafely}
           >
-            <SymbolView name="chevron.left" size={16} tintColor="#0A1F44" />
+            <SymbolView name="chevron.left" size={16} tintColor={theme.textSecondary} />
             <ThemedText style={styles.backText}>Retour</ThemedText>
           </Pressable>
           <ThemedView style={styles.topActions}>
             <Pressable style={[styles.actionBtn, { backgroundColor: theme.backgroundElement }]} onPress={handleFavorite}>
-              <SymbolView name={isFav ? 'heart.fill' : 'heart'} size={20} tintColor={isFav ? '#7A1F3D' : '#0A1F44'} />
+              <SymbolView name={isFav ? 'heart.fill' : 'heart'} size={20} tintColor={isFav ? '#7A1F3D' : theme.textSecondary} />
             </Pressable>
             <Pressable style={[styles.actionBtn, { backgroundColor: theme.backgroundElement }]} onPress={handleShare}>
-              <SymbolView name="square.and.arrow.up" size={20} tintColor="#0A1F44" />
+              <SymbolView name="square.and.arrow.up" size={20} tintColor={theme.textSecondary} />
             </Pressable>
           </ThemedView>
         </ThemedView>
 
         {/* Header */}
         <ThemedView style={styles.header}>
-          <ThemedView style={[styles.iconBubble, { backgroundColor: `${moment?.color ?? '#0A1F44'}18` }]}>
-            <SymbolView name={(moment?.icon ?? 'heart.fill') as any} size={28} tintColor={moment?.color ?? '#0A1F44'} />
+          <ThemedView style={[styles.iconBubble, { backgroundColor: `${moment?.color ?? theme.textSecondary}18` }]}>
+            <SymbolView name={(moment?.icon ?? 'heart.fill') as any} size={28} tintColor={moment?.color ?? theme.textSecondary} />
           </ThemedView>
           <ThemedText style={styles.title}>{priere.titre}</ThemedText>
           <ThemedView style={styles.metaRow}>
@@ -124,7 +124,7 @@ const styles = createThemedStyles({
     flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingHorizontal: Spacing.two, paddingVertical: Spacing.one, borderRadius: 8,
   },
-  backText: { color: '#0A1F44', fontWeight: '600', fontSize: 15 },
+  backText: { color: '#000000', fontWeight: '600', fontSize: 15 },
   topActions: { flexDirection: 'row', gap: Spacing.two },
   actionBtn: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   header: { paddingHorizontal: Spacing.four, paddingVertical: Spacing.three, gap: Spacing.two },

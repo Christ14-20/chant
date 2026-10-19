@@ -22,14 +22,14 @@ const TOKENS = {
   bg: '#FFFFFF',
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
-  ink: '#0A1F44',
-  inkMuted: '#0A1F44',
-  inkSubtle: '#0A1F44',
+  ink: '#000000',
+  inkMuted: '#4A4A4A',
+  inkSubtle: '#777777',
   gold: '#7A1F3D',
   goldSoft: '#7A1F3D',
-  teal: '#0A1F44',
+  teal: '#725A61',
   tealSoft: '#FFFFFF',
-  border: '#FFFFFF',
+  border: '#E5E5E5',
   pink: '#7A1F3D',
 };
 
@@ -62,16 +62,16 @@ const SEASON_LABELS: Record<string, string> = {
 
 const MOODS: { id: string; label: string; icon: string; color: string }[] = [
   { id: 'paix', label: "Besoin de paix", icon: 'weather-sunset', color: '#7A1F3D' },
-  { id: 'priere', label: 'Je veux prier', icon: 'hands-pray', color: '#0A1F44' },
+  { id: 'priere', label: 'Je veux prier', icon: 'hands-pray', color: '#725A61' },
   { id: 'adoration', label: 'Je veux adorer', icon: 'heart-outline', color: '#7A1F3D' },
   { id: 'louange', label: 'Je veux louer', icon: 'fire', color: '#7A1F3D' },
-  { id: 'consolation', label: 'Consolation', icon: 'hand-heart-outline', color: '#0A1F44' },
+  { id: 'consolation', label: 'Consolation', icon: 'hand-heart-outline', color: '#725A61' },
 ];
 
 const moodOptions = MOODS.map((item) => ({ id: item.id, label: item.label, icon: item.icon, color: item.color }));
 
 export default function ChantsCatalogueScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
   const favorites = useAppStore((state) => state.favorites);
   const toggleFavorite = useAppStore((state) => state.toggleFavorite);
@@ -216,7 +216,7 @@ export default function ChantsCatalogueScreen() {
                 hitSlop={6}
                 style={styles.searchClear}
               >
-                <MaterialCommunityIcons name="close" size={16} color={TOKENS.inkMuted} />
+                <MaterialCommunityIcons name="close" size={16} color={theme.textSecondary} />
               </Pressable>
             ) : null}
           </View>
@@ -330,6 +330,7 @@ function IconButton({
 }: {
   icon: string; onPress: () => void; badge?: number; highlight?: boolean;
 }) {
+  const theme = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -349,7 +350,7 @@ function IconButton({
       <MaterialCommunityIcons
         name={icon as any}
         size={20}
-        color={highlight ? TOKENS.gold : TOKENS.ink}
+        color={highlight ? TOKENS.gold : theme.text}
       />
       {badge !== undefined && (
         <View style={styles.iconBadge}>
@@ -366,6 +367,7 @@ function TrackRow({
   title: string; artist: string; language: string; category: string;
   favorite: boolean; onOpen: () => void; onPlay: () => void; onFavorite: () => void;
 }) {
+  const theme = useTheme();
   const heartScale = useRef(new Animated.Value(1)).current;
 
   const handleFavorite = () => {
@@ -381,7 +383,7 @@ function TrackRow({
     <View style={styles.trackRow}>
       <Pressable onPress={onOpen} style={styles.trackMain}>
         <LinearGradient
-          colors={['#7A1F3D22', '#0A1F4411']}
+          colors={['#7A1F3D22', '#725A6111']}
           style={styles.trackArtwork}
         >
           <MaterialCommunityIcons name="music-note" size={18} color="#7A1F3D" />
@@ -399,7 +401,7 @@ function TrackRow({
           <MaterialCommunityIcons
             name={favorite ? 'heart' : 'heart-outline'}
             size={20}
-            color={favorite ? ActionColors.primary : TOKENS.inkSubtle}
+            color={favorite ? ActionColors.primary : theme.textSecondary}
           />
         </Animated.View>
       </Pressable>
@@ -408,10 +410,11 @@ function TrackRow({
 }
 
 function EmptyState() {
+  const theme = useTheme();
   return (
     <View style={styles.emptyState}>
       <View style={styles.emptyIconWrap}>
-        <MaterialCommunityIcons name="music-note-off" size={32} color={TOKENS.inkSubtle} />
+        <MaterialCommunityIcons name="music-note-off" size={32} color={theme.textSecondary} />
       </View>
       <Text style={styles.emptyTitle}>Aucun chant disponible</Text>
       <Text style={styles.emptySubtitle}>Essayez une autre langue ou catégorie.</Text>

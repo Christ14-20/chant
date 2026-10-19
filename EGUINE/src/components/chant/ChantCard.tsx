@@ -21,11 +21,11 @@ const CATEGORIE_LABELS: Record<string, string> = {
 };
 
 const CATEGORIE_COLORS: Record<string, string> = {
-  entree: '#7A1F3D', kyrie: '#7A1F3D', gloria: '#7A1F3D', psaume: '#0A1F44',
+  entree: '#7A1F3D', kyrie: '#7A1F3D', gloria: '#7A1F3D', psaume: '#725A61',
   acclamation: '#7A1F3D', offertoire: '#7A1F3D', sanctus: '#7A1F3D',
-  agnus_dei: '#7A1F3D', communion: '#0A1F44', action_grace: '#7A1F3D',
+  agnus_dei: '#7A1F3D', communion: '#725A61', action_grace: '#7A1F3D',
   chant_final: '#7A1F3D', louange: '#7A1F3D', adoration: '#7A1F3D',
-  penitence: '#0A1F44', marial: '#7A1F3D', funerailles: '#0A1F44', autre: '#0A1F44',
+  penitence: '#725A61', marial: '#7A1F3D', funerailles: '#725A61', autre: '#725A61',
 };
 
 const LANG_LABELS: Record<string, string> = {
@@ -93,15 +93,15 @@ export function ChantCard({
   }, [chant.id, onPress]);
 
   const categorieLabel = CATEGORIE_LABELS[chant.categorie] || chant.categorie;
-  const categorieColor = CATEGORIE_COLORS[chant.categorie] || '#0A1F44';
+  const categorieColor = CATEGORIE_COLORS[chant.categorie] || '#725A61';
   const langLabel = LANG_LABELS[chant.langue] || chant.langue;
   const isCompact = variant === 'compact';
   const isFeatured = variant === 'featured';
 
-  const isDark = theme.background === '#0A1F44';
+  const isDark = theme.background === '#000000';
   const cardBg = isDark ? '#000000' : '#FFFFFF';
   const cardPressedBg = isDark ? '#000000' : '#FFFFFF';
-  const mutedColor = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(10,31,68,0.55)';
+  const mutedColor = isDark ? 'rgba(255,255,255,0.55)' : '#4A4A4A';
 
   return (
     <Animated.View
@@ -120,7 +120,7 @@ export function ChantCard({
           isFeatured && styles.cardFeatured,
           {
             backgroundColor: isPressed && Platform.OS !== 'web' ? cardPressedBg : cardBg,
-            shadowColor: isDark ? '#000000' : '#0A1F44',
+            shadowColor: '#000000',
           },
         ]}
         accessibilityRole="button"
@@ -141,7 +141,7 @@ export function ChantCard({
 
             <View style={styles.headerActions}>
               {/* Badge langue pill */}
-              <View style={[styles.langPill, { backgroundColor: isDark ? 'rgba(10,31,68,0.24)' : 'rgba(10,31,68,0.12)' }]}>
+              <View style={[styles.langPill, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(122,31,61,0.06)' }]}>
                 {!isCompact && (
                   <ThemedText style={[styles.langText, { color: mutedColor }]} numberOfLines={1}>
                     {langLabel}
@@ -225,14 +225,14 @@ export function ChantCard({
                   key={tag.id}
                   style={[
                     styles.tag,
-                    { backgroundColor: isDark ? 'rgba(10,31,68,0.15)' : 'rgba(10,31,68,0.08)' },
+                    { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(122,31,61,0.06)' },
                   ]}
                 >
                   <ThemedText style={styles.tagText}>#{tag.nom}</ThemedText>
                 </View>
               ))}
               {chant.tags.length > (isCompact ? 2 : 3) && (
-                <View style={[styles.tag, { backgroundColor: isDark ? 'rgba(10,31,68,0.2)' : 'rgba(10,31,68,0.1)' }]}>
+                <View style={[styles.tag, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(122,31,61,0.08)' }]}>
                   <ThemedText style={[styles.tagText, { color: mutedColor }]}>
                     +{chant.tags.length - (isCompact ? 2 : 3)}
                   </ThemedText>
@@ -286,7 +286,7 @@ const styles = createThemedStyles({
     shadowRadius: 12,
     elevation: 3,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(10,31,68,0.12)',
+    borderColor: '#E5E5E5',
   },
   cardCompact: {
     marginHorizontal: Spacing.two,

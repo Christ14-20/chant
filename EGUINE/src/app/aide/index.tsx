@@ -28,18 +28,18 @@ const COLORS = {
   gold: '#7A1F3D',
   text: '#0A1F44',
   muted: '#0A1F44',
-  border: '#FFFFFF',
+  border: '#E5E5E5',
 };
 
 export default function HelpScreen() {
-  useTheme();
+  const theme = useTheme();
   const router = useRouter();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
-          <SymbolView name="chevron.left" size={18} tintColor={COLORS.navy} />
+          <SymbolView name="chevron.left" size={18} tintColor={theme.textSecondary} />
         </Pressable>
         <Text style={styles.topTitle}>Aide & FAQ</Text>
         <View style={styles.backButton} />

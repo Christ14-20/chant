@@ -11,23 +11,23 @@ const COLORS = {
   gold: '#7A1F3D',
   text: '#0A1F44',
   muted: '#0A1F44',
-  border: '#FFFFFF',
+  border: '#E5E5E5',
 };
 
 export default function SaintDetailScreen() {
-  useTheme();
+  const theme = useTheme();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
-          <SymbolView name="chevron.left" size={19} tintColor={COLORS.text} />
+          <SymbolView name="chevron.left" size={19} tintColor={theme.textSecondary} />
         </Pressable>
         <Text style={styles.topTitle}>Saint du jour</Text>
         <View style={styles.backButton} />
       </View>
       <View style={styles.notFound}>
-        <SymbolView name="person.crop.circle.badge.questionmark" size={44} tintColor={COLORS.muted} />
+        <SymbolView name="person.crop.circle.badge.questionmark" size={44} tintColor={theme.textSecondary} />
         <Text style={styles.notFoundTitle}>Aucune fiche disponible</Text>
         <Text style={styles.bodyText}>Les fiches de saints ne sont pas encore enregistrées dans la bibliothèque.</Text>
       </View>

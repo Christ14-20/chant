@@ -1,14 +1,15 @@
+import { useCallback } from 'react';
 import { Dimensions, useWindowDimensions } from 'react-native';
 
 export type BreakPoint = 'xs' | 'sm' | 'md' | 'lg';
 
-const { width: SW, height: SH } = Dimensions.get('window');
-
-export const wp = (pct: number) => (SW * pct) / 100;
-export const hp = (pct: number) => (SH * pct) / 100;
+export const wp = (pct: number) => (Dimensions.get('window').width * pct) / 100;
+export const hp = (pct: number) => (Dimensions.get('window').height * pct) / 100;
 
 export function useResponsive() {
   const { width, height } = useWindowDimensions();
+  const responsiveWp = useCallback((pct: number) => (width * pct) / 100, [width]);
+  const responsiveHp = useCallback((pct: number) => (height * pct) / 100, [height]);
 
   const bp: BreakPoint =
     width < 360 ? 'xs' : width < 600 ? 'sm' : width < 900 ? 'md' : 'lg';
@@ -34,5 +35,17 @@ export function useResponsive() {
     top: isSmall ? 48 : 64,
   };
 
-  return { width, height, bp, isSmall, isTablet, hp, wp, cols, cardWidth, fs, pad };
+  return {
+    width,
+    height,
+    bp,
+    isSmall,
+    isTablet,
+    hp: responsiveHp,
+    wp: responsiveWp,
+    cols,
+    cardWidth,
+    fs,
+    pad,
+  };
 }

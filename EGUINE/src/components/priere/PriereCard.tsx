@@ -1,5 +1,6 @@
 import { createThemedStyles } from '@/utils/themed-styles';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { LocalizedPressable as Pressable } from '@/i18n/localized-components';
 import { SymbolView } from 'expo-symbols';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';

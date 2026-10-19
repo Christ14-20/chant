@@ -1,5 +1,6 @@
 import { createThemedStyles } from '@/utils/themed-styles';
-import { Platform, Pressable, StyleSheet, Animated, View } from 'react-native';
+import { Platform, StyleSheet, Animated, View } from 'react-native';
+import { LocalizedPressable as Pressable } from '@/i18n/localized-components';
 import { SymbolView } from 'expo-symbols';
 import { router } from 'expo-router';
 import { useState, useRef, useCallback, useEffect } from 'react';

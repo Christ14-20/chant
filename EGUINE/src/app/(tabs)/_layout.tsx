@@ -2,7 +2,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import '../../shims/shims';
 
-import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native';
+import { StyleSheet, View, useColorScheme } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { SymbolView } from 'expo-symbols';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
@@ -10,6 +11,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAppStore } from '@/store/useAppStore';
 import { ActionColors } from '@/constants/theme';
+import { useTranslation } from '@/i18n/use-translation';
+import { translateCategory } from '@/i18n/translations';
 
 const TAB_ROUTES = ['home', 'chants', 'messe', 'favoris', 'parametres'];
 const TAB_BAR_ROUTES = [...TAB_ROUTES, 'profile'];
@@ -51,6 +54,7 @@ export default function TabLayout() {
 
 function KotlinTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const themeMode = useAppStore((store) => store.themeMode);
   const systemScheme = useColorScheme();
   const isDark = themeMode === 'dark' || (themeMode === 'system' && systemScheme === 'dark');
@@ -77,7 +81,7 @@ function KotlinTabBar({ state, descriptors, navigation }: any) {
             const selected = state.index === routeIndex;
             const tabName = normalizeTabRoute(route.name);
             const color = selected ? '#7A1F3D' : isDark ? '#B8B8B8' : '#333333';
-            const label = descriptors[route.key]?.options?.title ?? tabName;
+            const label = t(descriptors[route.key]?.options?.title ?? tabName);
             return (
               <Pressable
                 key={route.key}
@@ -114,6 +118,7 @@ function normalizeTabRoute(routeName: string) {
 }
 
 function MiniPlayer({ isDark }: { isDark: boolean }) {
+  const { t, language } = useTranslation();
   const chants = useAppStore((state) => state.chants);
   const currentChantId = useAppStore((state) => state.currentChantId);
   const isPlaying = useAppStore((state) => state.isPlaying);
@@ -132,12 +137,12 @@ function MiniPlayer({ isDark }: { isDark: boolean }) {
         </View>
         <View style={styles.playerCopy}>
           <Text numberOfLines={1} style={[styles.playerTitle, { color: isDark ? '#F5F5F5' : '#000000' }]}>{chant.titre}</Text>
-          <Text numberOfLines={1} style={[styles.playerCategory, { color: isDark ? '#B8B8B8' : '#4A4A4A' }]}>{chant.categorie.replaceAll('_', ' ')}</Text>
+          <Text numberOfLines={1} style={[styles.playerCategory, { color: isDark ? '#B8B8B8' : '#4A4A4A' }]}>{translateCategory(chant.categorie, language)}</Text>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel={isPlaying ? 'Pause' : 'Lecture'} onPress={togglePlay} style={styles.playerAction}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t(isPlaying ? 'Pause' : 'Lecture')} onPress={togglePlay} style={styles.playerAction}>
           <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={22} color={ActionColors.playback} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer le lecteur" onPress={stopPlayer} style={styles.playerAction}>
+        <Pressable accessibilityRole="button" accessibilityLabel={t('Fermer le lecteur')} onPress={stopPlayer} style={styles.playerAction}>
           <MaterialCommunityIcons name="close" size={20} color={isDark ? '#B8B8B8' : '#333333'} />
         </Pressable>
       </View>

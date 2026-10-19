@@ -4,10 +4,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Celebration, Chant, Langue, OfflineStatus, Playlist, Priere, Role, User } from '@/types';
 import { initialChants } from '@/data/initialChants';
 import { DEFAULT_CELEBRATION_SLOT_IDS, reorderCelebrationSlotIds } from '@/utils/celebration-order';
+import { normalizeInterfaceLanguage } from '@/i18n/translations';
 
 interface RecentActivity {
   path: string;
 }
+
+export type InterfaceLanguage = 'fr' | 'en';
 
 interface AppState {
   user: User | null;
@@ -20,6 +23,14 @@ interface AppState {
   setRole: (role: Role) => void;
   languagePref: Langue;
   setLanguagePref: (lang: Langue) => void;
+  interfaceLanguage: InterfaceLanguage;
+  setInterfaceLanguage: (language: InterfaceLanguage) => void;
+  hasSeenWelcome: boolean;
+  completeWelcome: () => void;
+  replayWelcome: () => void;
+  discoveredScreens: string[];
+  markDiscoveryScreenSeen: (screenId: string) => void;
+  resetDiscoveryGuides: () => void;
   themeMode: 'light' | 'dark' | 'system';
   setThemeMode: (mode: 'light' | 'dark' | 'system') => void;
   fontSize: 'small' | 'medium' | 'large' | 'xlarge';
@@ -61,6 +72,7 @@ interface AppState {
   unreadNotifications: number;
   setUnreadNotifications: (n: number) => void;
   celebrations: Celebration[];
+  hasBootstrappedCelebrations: boolean;
   activeCelebrationId: string | null;
   recentActivities: RecentActivity[];
   recordRecentActivity: (path: string) => void;
@@ -87,6 +99,14 @@ interface AppState {
 
 const defaultRole: Role = 'fidelle';
 const defaultLanguagePref: Langue = 'fr';
+function getDeviceInterfaceLanguage(): InterfaceLanguage {
+  try {
+    return normalizeInterfaceLanguage(Intl.DateTimeFormat().resolvedOptions().locale);
+  } catch {
+    return 'fr';
+  }
+}
+const defaultInterfaceLanguage = getDeviceInterfaceLanguage();
 let pendingAppStorageWrite: Promise<void> = Promise.resolve();
 const appStorage = {
   getItem: (name: string) => typeof window === 'undefined' ? Promise.resolve(null) : AsyncStorage.getItem(name),
@@ -158,6 +178,18 @@ export const useAppStore = create<AppState>()(persist((set, get) => ({
       languagePref,
       user: state.user ? { ...state.user, language_pref: languagePref } : state.user,
     })),
+  interfaceLanguage: defaultInterfaceLanguage,
+  setInterfaceLanguage: (interfaceLanguage) => set({ interfaceLanguage }),
+  hasSeenWelcome: false,
+  completeWelcome: () => set({ hasSeenWelcome: true }),
+  replayWelcome: () => set({ hasSeenWelcome: false }),
+  discoveredScreens: [],
+  markDiscoveryScreenSeen: (screenId) => set((state) => ({
+    discoveredScreens: state.discoveredScreens.includes(screenId)
+      ? state.discoveredScreens
+      : [...state.discoveredScreens, screenId],
+  })),
+  resetDiscoveryGuides: () => set({ discoveredScreens: [] }),
   themeMode: 'light',
   setThemeMode: (themeMode) => set({ themeMode }),
   fontSize: 'medium',
@@ -289,6 +321,7 @@ export const useAppStore = create<AppState>()(persist((set, get) => ({
   unreadNotifications: 0,
   setUnreadNotifications: (unreadNotifications) => set({ unreadNotifications }),
   celebrations: [],
+  hasBootstrappedCelebrations: false,
   activeCelebrationId: null,
   recentActivities: [],
   recordRecentActivity: (path) => {
@@ -449,11 +482,15 @@ export const useAppStore = create<AppState>()(persist((set, get) => ({
   storage: createJSONStorage(() => appStorage),
   partialize: (state) => ({
     celebrations: state.celebrations,
+    hasBootstrappedCelebrations: state.hasBootstrappedCelebrations,
     activeCelebrationId: state.activeCelebrationId,
     recentActivities: state.recentActivities,
     themeMode: state.themeMode,
     fontSize: state.fontSize,
     languagePref: state.languagePref,
+    interfaceLanguage: state.interfaceLanguage,
+    hasSeenWelcome: state.hasSeenWelcome,
+    discoveredScreens: state.discoveredScreens,
     notificationsEnabled: state.notificationsEnabled,
     personalChants: state.personalChants,
   }),
@@ -461,6 +498,7 @@ export const useAppStore = create<AppState>()(persist((set, get) => ({
     const persisted = persistedState && typeof persistedState === 'object'
       ? persistedState as Partial<AppState>
       : {};
+    const hasLegacyInstallationState = Object.keys(persisted).length > 0;
     const personalChants = Array.isArray(persisted.personalChants)
       ? persisted.personalChants.filter(isStoredPersonalChant)
       : [];
@@ -484,7 +522,17 @@ export const useAppStore = create<AppState>()(persist((set, get) => ({
     return {
       ...currentState,
       ...persisted,
+      interfaceLanguage: persisted.interfaceLanguage === 'en' || persisted.interfaceLanguage === 'fr'
+        ? persisted.interfaceLanguage
+        : currentState.interfaceLanguage,
+      hasSeenWelcome: typeof persisted.hasSeenWelcome === 'boolean'
+        ? persisted.hasSeenWelcome
+        : hasLegacyInstallationState,
+      discoveredScreens: Array.isArray(persisted.discoveredScreens)
+        ? [...new Set(persisted.discoveredScreens.filter((screenId): screenId is string => typeof screenId === 'string'))]
+        : currentState.discoveredScreens,
       celebrations,
+      hasBootstrappedCelebrations: persisted.hasBootstrappedCelebrations === true,
       personalChants,
       recentActivities,
       activeCelebrationId: typeof persisted.activeCelebrationId === 'string'

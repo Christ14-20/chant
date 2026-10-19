@@ -34,6 +34,12 @@ Le symbole de l’application associe une croix, un livre ouvert et une note de 
 
 Expo Go conserve son propre écran de démarrage marqué Expo ; l’écran de lancement personnalisé est appliqué aux builds natifs de Cantique Guinée.
 
+## Langues de l’interface
+
+L’interface est disponible en français et en anglais. Le premier lancement reprend le français ou l’anglais du téléphone lorsqu’il est pris en charge ; sinon, le français est utilisé. La langue peut ensuite être modifiée dans **Réglages → Langue de l’application** et sa préférence est conservée localement. Ce réglage est distinct de la langue préférée des chants.
+
+Les libellés sont centralisés dans `src/i18n/translations.ts`. Les composants `LocalizedText`, `LocalizedTextInput` et `LocalizedPressable` traduisent le texte visible, les champs et les noms accessibles ; les alertes passent par `showLocalizedAlert()`. Le contrôle `npm run test:i18n` vérifie les traductions, l’interpolation et la couverture des libellés statiques. Les traductions et le catalogue de chants fonctionnent hors ligne.
+
 ## Vérifications
 
 ```bash

@@ -1,17 +1,7 @@
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useState, useMemo, useCallback, useRef } from 'react';
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  TextInput,
-  RefreshControl,
-  LayoutAnimation,
-  UIManager,
-  FlatList,
-  Modal,
-  View,
-} from 'react-native';
+import { Platform, StyleSheet, RefreshControl, LayoutAnimation, UIManager, FlatList, Modal, View, type TextInput as NativeTextInput } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedTextInput as TextInput } from '@/i18n/localized-components';
 import { SymbolView } from 'expo-symbols';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -20,7 +10,6 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useResponsive, wp, hp } from "@/hooks/use-responsive";
-import { useFontSize } from "@/hooks/use-font-size";
 import { PriereCard } from '@/components/priere/PriereCard';
 import { useAppStore } from '@/store/useAppStore';
 
@@ -177,7 +166,6 @@ const FilterButton = ({
 export default function PrieresScreen() {
   const router = useRouter();
   const { pad, fs, wp, hp, isTablet, cardWidth } = useResponsive();
-  const { fs: fsScale } = useFontSize();
   const theme = useTheme();
   const prieres = useAppStore((s) => s.prieres);
   const isFavoritePriere = useAppStore((s) => s.isFavoritePriere);
@@ -200,7 +188,7 @@ export default function PrieresScreen() {
   const [showMomentModal, setShowMomentModal] = useState(false);
 
   // Refs
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<NativeTextInput>(null);
 
   // Calculs des compteurs
   const categoryCounts = useMemo(() => {

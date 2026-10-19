@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
-} from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedText as Text, LocalizedTextInput as TextInput } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -132,7 +132,7 @@ export default function ChantManagementScreen() {
 
   const queuePickedFiles = async (kind: 'audio' | 'score', replacesId?: string) => {
     if (Platform.OS === 'web') {
-      Alert.alert('Stockage mobile requis', 'L’import de fichiers durables est disponible dans l’application mobile.');
+      showLocalizedAlert('Stockage mobile requis', 'L’import de fichiers durables est disponible dans l’application mobile.');
       return;
     }
     try {
@@ -171,14 +171,14 @@ export default function ChantManagementScreen() {
           ...accepted,
         ]);
       }
-      if (rejected.length) Alert.alert('Certains fichiers ont été refusés', rejected.slice(0, 4).join('\n'));
+      if (rejected.length) showLocalizedAlert('Certains fichiers ont été refusés', rejected.slice(0, 4).join('\n'));
     } catch (error) {
-      Alert.alert('Import impossible', messageFor(error));
+      showLocalizedAlert('Import impossible', messageFor(error));
     }
   };
 
   const removeSavedResource = (resourceId: string) => {
-    Alert.alert('Supprimer cette ressource ?', 'Le chant et ses autres fichiers resteront intacts.', [
+    showLocalizedAlert('Supprimer cette ressource ?', 'Le chant et ses autres fichiers resteront intacts.', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: () => {
         setSavedResources((current) => current.filter((resource) => resource.id !== resourceId));
@@ -198,11 +198,11 @@ export default function ChantManagementScreen() {
   const save = async () => {
     if (saving) return;
     if (!title.trim()) {
-      Alert.alert('Titre requis', 'Saisissez un titre avant d’enregistrer le chant.');
+      showLocalizedAlert('Titre requis', 'Saisissez un titre avant d’enregistrer le chant.');
       return;
     }
     if (!lyrics.trim() && sections.every((section) => !section.texte.trim()) && !allResourceCount) {
-      Alert.alert('Fiche vide', 'Ajoutez des paroles ou au moins une ressource.');
+      showLocalizedAlert('Fiche vide', 'Ajoutez des paroles ou au moins une ressource.');
       return;
     }
 
@@ -287,7 +287,7 @@ export default function ChantManagementScreen() {
           catch (cleanupError) { console.error(`Impossible de nettoyer le fichier temporaire ${uri}.`, cleanupError); }
         }
       }
-      Alert.alert('Enregistrement impossible', messageFor(error));
+      showLocalizedAlert('Enregistrement impossible', messageFor(error));
     } finally {
       setSaving(false);
     }

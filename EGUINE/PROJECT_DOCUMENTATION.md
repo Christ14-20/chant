@@ -385,6 +385,16 @@ const SCALE = { small: 0.85, medium: 1, large: 1.15, xlarge: 1.3 };
 - Attend que Zustand ait terminé de réhydrater le store persistant avant d’initialiser ou afficher les écrans dépendants du stockage local.
 - Evite les avancées dans l’interface avant la disponibilité du state `user`, `favorites`, `personalChants`, etc.
 
+### 4.7 Internationalisation de l’interface
+
+- `src/i18n/translations.ts` centralise les libellés français/anglais, la normalisation de locale et les traductions de catégories.
+- `src/i18n/use-translation.ts` expose `useTranslation()` avec `t()` réactif au changement immédiat de langue.
+- `src/i18n/localized-components.tsx` applique les traductions aux textes, champs de saisie et libellés accessibles partagés par les écrans.
+- `src/i18n/alert.ts` localise les alertes et les boutons de confirmation avec la préférence d’interface active.
+- `interfaceLanguage` dans Zustand est distinct de `languagePref` (préférence de langue des chants), détecte la locale système compatible français/anglais au premier lancement et est conservé dans AsyncStorage.
+- La bibliothèque et les préférences restent stockées localement ; aucun service distant n’est requis pour traduire l’interface.
+- Les tests ciblés de locale, interpolation et couverture des libellés statiques sont exécutés par `npm run test:i18n`.
+
 ---
 
 ## 5. Composants Core

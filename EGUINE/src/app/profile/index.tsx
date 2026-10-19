@@ -1,7 +1,8 @@
 import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';

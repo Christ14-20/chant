@@ -1,4 +1,5 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { SORT_OPTIONS, type SortOption } from './filters';

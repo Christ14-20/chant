@@ -1,10 +1,9 @@
 import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import {
-  Alert, Image, KeyboardAvoidingView, Linking, Modal, Pressable, ScrollView, Share, StatusBar, StyleSheet,
-  Text, TextInput, View, Platform, useWindowDimensions,
-} from 'react-native';
+import { Image, KeyboardAvoidingView, Linking, Modal, ScrollView, Share, StatusBar, StyleSheet, View, Platform, useWindowDimensions } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedText as Text, LocalizedTextInput as TextInput } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +18,7 @@ import { recordChantListen, searchChants } from '@/database/chant-database';
 import type { Categorie, Celebration, Chant, Variante } from '@/types';
 import { ActionColors } from '@/constants/theme';
 import { DEFAULT_CELEBRATION_SLOT_IDS, getEffectiveSlotOrder } from '@/utils/celebration-order';
+import { useTranslation } from '@/i18n/use-translation';
 
 // ============ DESIGN TOKENS ============
 const TOKENS = {
@@ -1032,6 +1032,7 @@ function generateCelebration(
 
 // ============ ÉCRAN MESSE ============
 export default function MesseScreen() {
+  const { language } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
   const chants = useAppStore((s) => s.chants);
@@ -1238,7 +1239,7 @@ export default function MesseScreen() {
 
   const confirmResetProgram = () => {
     if (!celebration) return;
-    Alert.alert(
+    showLocalizedAlert(
       'Réinitialiser le programme ?',
       'Cette action supprimera tous les chants sélectionnés pour cette préparation.',
       [
@@ -1802,10 +1803,10 @@ export default function MesseScreen() {
                           <View style={styles.preparationCopy}>
                             <Text numberOfLines={1} style={styles.preparationName}>{item.title}</Text>
                             <Text style={styles.preparationMeta}>
-                              {formatDateLong(item.date)} · {chantCount} chant{chantCount === 1 ? '' : 's'}
+                              {formatDateLong(item.date, language)} · {chantCount} chant{chantCount === 1 ? '' : 's'}
                             </Text>
                             <Text style={styles.preparationMeta}>
-                              Modifiée le {formatDateLong(item.updated_at ?? item.created_at ?? item.date)}
+                              Modifiée le {formatDateLong(item.updated_at ?? item.created_at ?? item.date, language)}
                             </Text>
                           </View>
                         </Pressable>
@@ -1824,7 +1825,7 @@ export default function MesseScreen() {
                           accessibilityRole="button"
                           accessibilityLabel={`Supprimer ${item.title}`}
                           onPress={() => {
-                            Alert.alert(
+                            showLocalizedAlert(
                               'Supprimer cette préparation ?',
                               `« ${item.title} » et ses choix de chants seront supprimés.`,
                               [
@@ -2118,6 +2119,7 @@ function CelebrationWizard({
   onDismiss: () => void;
   onAdopt: (program: SuggestedProgram) => void;
 }) {
+  const { language } = useTranslation();
   const theme = useTheme();
   const chants = useAppStore((s) => s.chants);
   const [databaseChants, setDatabaseChants] = useState<Chant[]>([]);
@@ -2201,7 +2203,7 @@ function CelebrationWizard({
             >
               <View style={styles.contextTop}>
                 <View style={styles.contextDot} />
-                <Text style={styles.contextDate}>{formatDateLong(date)}</Text>
+                <Text style={styles.contextDate}>{formatDateLong(date, language)}</Text>
               </View>
               <Text style={styles.contextSeason}>{day.seasonLabel}</Text>
               <Text style={styles.contextTheme}>{day.themeLabel}</Text>
@@ -2666,7 +2668,7 @@ function CelebrationMode({
         await Linking.openURL(resource.uri);
       } catch (error) {
         console.error('Impossible d’ouvrir cette partition.', error);
-        Alert.alert('Ouverture impossible', 'Cette ressource ne peut pas être ouverte sur cet appareil.');
+        showLocalizedAlert('Ouverture impossible', 'Cette ressource ne peut pas être ouverte sur cet appareil.');
       }
       return;
     }
@@ -3153,7 +3155,7 @@ function CelebrationMode({
               style={styles.celPartitionViewer}
               onError={(event) => {
                 console.error('Impossible de charger la partition PDF.', event.nativeEvent);
-                Alert.alert('Chargement impossible', 'La partition PDF ne peut pas être affichée.');
+                showLocalizedAlert('Chargement impossible', 'La partition PDF ne peut pas être affichée.');
               }}
             />
           ) : partition?.kind === 'image' ? (
@@ -3164,7 +3166,7 @@ function CelebrationMode({
                 style={styles.celPartitionImage}
                 onError={(event) => {
                   console.error('Impossible de charger la partition image.', event.nativeEvent.error);
-                  Alert.alert('Chargement impossible', 'La partition image ne peut pas être affichée.');
+                  showLocalizedAlert('Chargement impossible', 'La partition image ne peut pas être affichée.');
                 }}
               />
             </ScrollView>
@@ -3181,10 +3183,10 @@ function formatAudioTime(seconds: number): string {
   return `${Math.floor(safeSeconds / 60)}:${String(safeSeconds % 60).padStart(2, '0')}`;
 }
 
-function formatDateLong(date: string): string {
+function formatDateLong(date: string, language: 'fr' | 'en'): string {
   const d = new Date(date);
   return d
-    .toLocaleDateString('fr-FR', {
+    .toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',

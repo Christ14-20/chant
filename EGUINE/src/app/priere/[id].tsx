@@ -1,5 +1,6 @@
 import { createThemedStyles } from '@/utils/themed-styles';
-import { ScrollView, StyleSheet, Pressable, Share } from 'react-native';
+import { ScrollView, StyleSheet, Share } from 'react-native';
+import { LocalizedPressable as Pressable } from '@/i18n/localized-components';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import * as Haptics from 'expo-haptics';

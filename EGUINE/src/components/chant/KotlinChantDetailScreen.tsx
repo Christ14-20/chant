@@ -1,17 +1,15 @@
 import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Alert, Modal, Pressable, ScrollView, Share, StyleSheet, Text, View,
-  Animated, Platform,
-} from 'react-native';
+import { Modal, ScrollView, Share, StyleSheet, View, Animated, Platform } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRootNavigationState, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useAppStore } from '@/store/useAppStore';
-import { useFontSize } from '@/hooks/use-font-size';
 import { wp } from '@/hooks/use-responsive';
 import { recordChantView } from '@/database/chant-database';
 import { isVoiceResource } from '@/utils/chant-resources';
@@ -82,8 +80,7 @@ export default function KotlinChantDetailScreen() {
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
   const player = useAudioPlayer(null, { updateInterval: 300 });
   const audioStatus = useAudioPlayerStatus(player);
-  const { fs } = useFontSize();
-  const fontSize = fs(20);
+  const fontSize = 20;
 
   const scrollRef = useRef<ScrollView>(null);
   const recordedViewId = useRef<string | null>(null);
@@ -171,7 +168,7 @@ export default function KotlinChantDetailScreen() {
       if (currentChantId !== chant.id) playChant(chant.id);
       else if (!isPlaying) togglePlay();
     } catch (error) {
-      Alert.alert('Lecture impossible', error instanceof Error ? error.message : 'Impossible de lire cette piste audio.');
+      showLocalizedAlert('Lecture impossible', error instanceof Error ? error.message : 'Impossible de lire cette piste audio.');
     }
   };
 

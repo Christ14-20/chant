@@ -1,9 +1,9 @@
 import { createThemedStyles } from '@/utils/themed-styles';
-import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
+import { Platform, StyleSheet, type TextProps } from 'react-native';
+import { LocalizedText as Text } from '@/i18n/localized-components';
 
 import { Fonts, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { useFontSize } from '@/hooks/use-font-size';
 
 export type ThemedTextProps = TextProps & {
   type?: 'default' | 'title' | 'small' | 'smallBold' | 'subtitle' | 'link' | 'linkPrimary' | 'code';
@@ -12,19 +12,18 @@ export type ThemedTextProps = TextProps & {
 
 export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
   const theme = useTheme();
-  const { fs } = useFontSize();
 
   return (
     <Text
       style={[
         { color: theme[themeColor ?? 'text'], fontFamily: Fonts.sans },
-        type === 'default' && { ...styles.default, fontSize: fs(16) },
-        type === 'title' && { ...styles.title, fontSize: fs(48) },
-        type === 'small' && { ...styles.small, fontSize: fs(14) },
-        type === 'smallBold' && { ...styles.smallBold, fontSize: fs(14) },
-        type === 'subtitle' && { ...styles.subtitle, fontSize: fs(32) },
-        type === 'link' && { ...styles.link, fontSize: fs(14) },
-        type === 'linkPrimary' && { ...styles.linkPrimary, fontSize: fs(14) },
+        type === 'default' && styles.default,
+        type === 'title' && styles.title,
+        type === 'small' && styles.small,
+        type === 'smallBold' && styles.smallBold,
+        type === 'subtitle' && styles.subtitle,
+        type === 'link' && styles.link,
+        type === 'linkPrimary' && styles.linkPrimary,
         type === 'code' && styles.code,
         style,
       ]}

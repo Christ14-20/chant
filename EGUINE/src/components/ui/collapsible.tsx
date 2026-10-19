@@ -1,7 +1,8 @@
 import { createThemedStyles } from '@/utils/themed-styles';
 import { SymbolView } from 'expo-symbols';
 import { PropsWithChildren, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { LocalizedPressable as Pressable } from '@/i18n/localized-components';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';

@@ -1,13 +1,14 @@
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '@/store/useAppStore';
 import { useTheme } from '@/hooks/use-theme';
-import { useFontSize } from '@/hooks/use-font-size';
+import { useTranslation } from '@/i18n/use-translation';
 import { goBackSafely } from '@/utils/navigation';
 import type { Langue } from '@/types';
 
@@ -19,6 +20,7 @@ const GROUPS = [
     title: 'PRÉFÉRENCES',
     rows: [
       { icon: 'theme-light-dark', color: NAVY, title: 'Apparence', subtitle: 'Thème, taille du texte' },
+      { icon: 'translate', color: ACCENT, title: 'Langue de l’application', subtitle: 'Français ou anglais pour toute l’interface' },
       { icon: 'bell-outline', color: NAVY, title: 'Notifications', subtitle: 'Alertes dans l’application' },
       { icon: 'translate', color: ACCENT, title: 'Langue des chants', subtitle: 'Mettre une langue en avant dans le catalogue' },
     ],
@@ -68,26 +70,31 @@ const LANGUAGE_OPTIONS: { value: Langue; label: string }[] = [
   { value: 'en', label: 'Anglais' },
 ];
 
-type SettingsPanel = 'appearance' | 'notifications' | 'language' | 'storage' | 'privacy' | 'about' | 'account' | null;
+type SettingsPanel = 'appearance' | 'notifications' | 'interfaceLanguage' | 'language' | 'storage' | 'privacy' | 'about' | 'account' | null;
 
 export default function KotlinSettingsScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { fs, scale } = useFontSize();
+  const { t } = useTranslation();
   const themeMode = useAppStore((state) => state.themeMode);
   const setThemeMode = useAppStore((state) => state.setThemeMode);
   const fontSize = useAppStore((state) => state.fontSize);
   const setFontSize = useAppStore((state) => state.setFontSize);
   const languagePref = useAppStore((state) => state.languagePref);
   const setLanguagePref = useAppStore((state) => state.setLanguagePref);
+  const interfaceLanguage = useAppStore((state) => state.interfaceLanguage);
+  const setInterfaceLanguage = useAppStore((state) => state.setInterfaceLanguage);
   const notificationsEnabled = useAppStore((state) => state.notificationsEnabled);
   const setNotificationsEnabled = useAppStore((state) => state.setNotificationsEnabled);
+  const replayWelcome = useAppStore((state) => state.replayWelcome);
+  const resetDiscoveryGuides = useAppStore((state) => state.resetDiscoveryGuides);
   const chants = useAppStore((state) => state.chants);
   const prieres = useAppStore((state) => state.prieres);
   const [panel, setPanel] = useState<SettingsPanel>(null);
   const openRow = (title: string) => {
     switch (title) {
       case 'Apparence': setPanel('appearance'); break;
+      case 'Langue de l’application': setPanel('interfaceLanguage'); break;
       case 'Notifications': setPanel('notifications'); break;
       case 'Langue des chants': setPanel('language'); break;
       case 'Données et stockage': setPanel('storage'); break;
@@ -99,6 +106,7 @@ export default function KotlinSettingsScreen() {
 
   const panelTitle = {
     appearance: 'Apparence',
+    interfaceLanguage: 'Langue de l’application',
     notifications: 'Notifications',
     language: 'Langue des chants',
     storage: 'Données et stockage',
@@ -113,20 +121,22 @@ export default function KotlinSettingsScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={goBackSafely} style={styles.backButton}>
           <MaterialCommunityIcons name="arrow-left" size={22} color={theme.text} />
         </Pressable>
-        <Text style={[styles.topTitle, { color: theme.text, fontSize: fs(18) }]}>Réglages</Text>
+        <Text style={[styles.topTitle, { color: theme.text }]}>{t('Réglages')}</Text>
         <View style={styles.backButton} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         {GROUPS.map((group) => (
           <View key={group.title} style={styles.group}>
-            <Text style={[styles.groupTitle, { color: theme.textSecondary, fontSize: fs(11) }]}>{group.title}</Text>
+            <Text style={[styles.groupTitle, { color: theme.textSecondary }]}>{t(group.title)}</Text>
             {group.rows.map((row) => (
               <SettingsRow
                 key={row.title}
-                {...row}
+                icon={row.icon}
+                color={row.color}
+                title={t(row.title)}
+                subtitle={t(row.subtitle)}
                 theme={theme}
-                fontScale={scale}
                 onPress={'route' in row && row.route ? () => router.push(row.route) : () => openRow(row.title)}
               />
             ))}
@@ -134,23 +144,42 @@ export default function KotlinSettingsScreen() {
         ))}
 
         <View style={styles.group}>
-          <Text style={[styles.groupTitle, { color: theme.textSecondary, fontSize: fs(11) }]}>ZONE SENSIBLE</Text>
+          <Text style={[styles.groupTitle, { color: theme.textSecondary }]}>{t('DÉCOUVERTE')}</Text>
+          <SettingsRow
+            icon="movie-open-outline"
+            color={NAVY}
+            title={t('Revoir la présentation')}
+            subtitle={t('Relancer le parcours de bienvenue')}
+            theme={theme}
+            onPress={replayWelcome}
+          />
+          <SettingsRow
+            icon="help-circle-outline"
+            color={ACCENT}
+            title={t('Revoir tous les guides')}
+            subtitle={t('Réafficher les conseils lors de vos prochaines visites')}
+            theme={theme}
+            onPress={resetDiscoveryGuides}
+          />
+        </View>
+
+        <View style={styles.group}>
+          <Text style={[styles.groupTitle, { color: theme.textSecondary }]}>{t('ZONE SENSIBLE')}</Text>
           <SettingsRow
             icon="delete-forever-outline"
             color={ACCENT}
-            title="Supprimer mon compte"
-            subtitle="Service de compte non configuré"
+            title={t('Supprimer mon compte')}
+            subtitle={t('Service de compte non configuré')}
             danger
             theme={theme}
-            fontScale={scale}
             onPress={() => setPanel('account')}
           />
         </View>
 
         <View style={styles.footer}>
           <View style={styles.footerIcon}><MaterialCommunityIcons name="music-note" size={20} color={ACCENT} /></View>
-          <Text style={[styles.footerTitle, { color: theme.text, fontSize: fs(15) }]}>Cantique Guinée</Text>
-          <Text style={[styles.footerMeta, { color: theme.textSecondary, fontSize: fs(11) }]}>Chants liturgiques de Guinée · Version {Constants.expoConfig?.version ?? '1.0.0'}</Text>
+          <Text style={[styles.footerTitle, { color: theme.text }]}>Cantique Guinée</Text>
+          <Text style={[styles.footerMeta, { color: theme.textSecondary }]}>{t('Chants liturgiques de Guinée · Version')} {Constants.expoConfig?.version ?? '1.0.0'}</Text>
         </View>
       </ScrollView>
 
@@ -159,50 +188,50 @@ export default function KotlinSettingsScreen() {
           <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={() => setPanel(null)} style={styles.scrim} />
           <View style={[styles.sheet, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
             <View style={styles.sheetHeader}>
-              <Text style={[styles.sheetTitle, { color: theme.text, fontSize: fs(18) }]}>{panelTitle}</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={() => setPanel(null)} style={styles.closeButton}>
+              <Text style={[styles.sheetTitle, { color: theme.text }]}>{t(panelTitle)}</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel={t('Fermer')} onPress={() => setPanel(null)} style={styles.closeButton}>
                 <MaterialCommunityIcons name="close" size={21} color={theme.text} />
               </Pressable>
             </View>
             <ScrollView contentContainerStyle={styles.sheetContent}>
               {panel === 'appearance' && (
                 <>
-                  <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>THÈME</Text>
+                  <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>{t('THÈME')}</Text>
                   {THEME_OPTIONS.map((option) => (
                     <ChoiceRow
                       key={option.value}
-                      label={option.label}
-                      description={option.description}
+                      label={t(option.label)}
+                      description={t(option.description)}
                       selected={themeMode === option.value}
                       theme={theme}
                       onPress={() => setThemeMode(option.value)}
                     />
                   ))}
-                  <Text style={[styles.sectionLabel, styles.spacedLabel, { color: theme.textSecondary }]}>TAILLE DES PAROLES</Text>
-                  <Text style={[styles.helper, { color: theme.textSecondary }]}>Cette taille s’applique aux paroles des chants et reste synchronisée avec les boutons A− / A+.</Text>
+                  <Text style={[styles.sectionLabel, styles.spacedLabel, { color: theme.textSecondary }]}>{t('TAILLE DU TEXTE')}</Text>
+                  <Text style={[styles.helper, { color: theme.textSecondary }]}>{t('Cette taille de texte s’applique à toute l’application, y compris aux paroles des chants.')}</Text>
                   <View style={styles.optionGrid}>
                     {FONT_OPTIONS.map((option) => (
                       <ChoiceRow
                         key={option.value}
-                        label={option.label}
+                        label={t(option.label)}
                         selected={fontSize === option.value}
                         theme={theme}
                         onPress={() => setFontSize(option.value)}
                       />
                     ))}
                   </View>
-                  <Text style={[styles.preview, { color: theme.text, fontSize: fs(18) }]}>Exemple de texte des paroles</Text>
+                  <Text style={[styles.preview, { color: theme.text }]}>{t('Exemple de texte des paroles')}</Text>
                 </>
               )}
 
               {panel === 'notifications' && (
                 <View style={styles.toggleRow}>
                   <View style={styles.toggleCopy}>
-                    <Text style={[styles.optionLabel, { color: theme.text }]}>Alertes dans l’application</Text>
-                    <Text style={[styles.helper, { color: theme.textSecondary }]}>Masque ou affiche les alertes de démonstration dans l’écran Notifications et l’indicateur de l’accueil. Les notifications système/push ne sont pas configurées.</Text>
+                    <Text style={[styles.optionLabel, { color: theme.text }]}>{t('Alertes dans l’application')}</Text>
+                    <Text style={[styles.helper, { color: theme.textSecondary }]}>{t('Masque ou affiche les alertes de démonstration dans l’écran Notifications et l’indicateur de l’accueil. Les notifications système/push ne sont pas configurées.')}</Text>
                   </View>
                   <Switch
-                    accessibilityLabel="Activer les notifications dans l’application"
+                    accessibilityLabel={t('Activer les notifications dans l’application')}
                     value={notificationsEnabled}
                     onValueChange={setNotificationsEnabled}
                     trackColor={{ false: theme.border, true: ACCENT }}
@@ -210,13 +239,31 @@ export default function KotlinSettingsScreen() {
                 </View>
               )}
 
+              {panel === 'interfaceLanguage' && (
+                <>
+                  <Text style={[styles.helper, { color: theme.textSecondary }]}>{t('Choisissez la langue de l’interface. Ce réglage est indépendant de la langue des chants.')}</Text>
+                  {([
+                    { value: 'fr', label: 'Français' },
+                    { value: 'en', label: 'Anglais' },
+                  ] as const).map((option) => (
+                    <ChoiceRow
+                      key={option.value}
+                      label={t(option.label)}
+                      selected={interfaceLanguage === option.value}
+                      theme={theme}
+                      onPress={() => setInterfaceLanguage(option.value)}
+                    />
+                  ))}
+                </>
+              )}
+
               {panel === 'language' && (
                 <>
-                  <Text style={[styles.helper, { color: theme.textSecondary }]}>La langue choisie est enregistrée sur cet appareil et ses chants sont présentés en premier dans le catalogue. La langue de l’interface reste le français.</Text>
+                  <Text style={[styles.helper, { color: theme.textSecondary }]}>{t('La langue choisie est enregistrée sur cet appareil et ses chants sont présentés en premier dans le catalogue. Elle est indépendante de la langue de l’interface.')}</Text>
                   {LANGUAGE_OPTIONS.map((option) => (
                     <ChoiceRow
                       key={option.value}
-                      label={option.label}
+                      label={option.value === 'en' ? t('Anglais') : option.value === 'fr' ? t('Français') : option.label}
                       selected={languagePref === option.value}
                       theme={theme}
                       onPress={() => setLanguagePref(option.value)}
@@ -229,8 +276,11 @@ export default function KotlinSettingsScreen() {
                 <InfoPanel
                   theme={theme}
                   icon="cloud-check-outline"
-                  title="Catalogue disponible hors ligne"
-                  message={`Le catalogue fourni avec l’application contient ${chants.length} chants et ${prieres.length} prières. Ces données sont embarquées localement. Aucun téléchargement audio distant ni cache réseau n’est configuré dans cette version.`}
+                  title={t('Catalogue disponible hors ligne')}
+                  message={t('Le catalogue fourni avec l’application contient {{chants}} chants et {{prayers}} prières. Ces données sont embarquées localement. Aucun téléchargement audio distant ni cache réseau n’est configuré dans cette version.', {
+                    chants: chants.length,
+                    prayers: prieres.length,
+                  })}
                 />
               )}
 
@@ -238,8 +288,8 @@ export default function KotlinSettingsScreen() {
                 <InfoPanel
                   theme={theme}
                   icon="shield-lock-outline"
-                  title="Données de cette installation"
-                  message="Les préférences de cette page sont conservées localement sur cet appareil. Aucun service de compte, de synchronisation ou de verrouillage biométrique n’est configuré dans le projet. La gestion des données côté serveur n’a pas été modifiée."
+                  title={t('Données de cette installation')}
+                  message={t('Les préférences de cette page sont conservées localement sur cet appareil. Aucun service de compte, de synchronisation ou de verrouillage biométrique n’est configuré dans le projet. La gestion des données côté serveur n’a pas été modifiée.')}
                 />
               )}
 
@@ -248,7 +298,7 @@ export default function KotlinSettingsScreen() {
                   theme={theme}
                   icon="music-note"
                   title="Cantique Guinée"
-                  message={`Chants liturgiques de Guinée\nVersion ${Constants.expoConfig?.version ?? '1.0.0'}\n\nLe catalogue et les préférences locales sont accessibles sans connexion.`}
+                  message={`${t('Chants liturgiques de Guinée')}\nVersion ${Constants.expoConfig?.version ?? '1.0.0'}\n\n${t('Le catalogue et les préférences locales sont accessibles sans connexion.')}`}
                 />
               )}
 
@@ -256,13 +306,13 @@ export default function KotlinSettingsScreen() {
                 <InfoPanel
                   theme={theme}
                   icon="cloud-alert-outline"
-                  title="Action non disponible"
-                  message="La suppression d’un compte doit être réalisée par le service de compte côté serveur. Aucun backend de compte n’est configuré ; aucune suppression ni modification serveur ne sera tentée."
+                  title={t('Action non disponible')}
+                  message={t('La suppression d’un compte doit être réalisée par le service de compte côté serveur. Aucun backend de compte n’est configuré ; aucune suppression ni modification serveur ne sera tentée.')}
                 />
               )}
             </ScrollView>
-            <Pressable accessibilityRole="button" onPress={() => setPanel(null)} style={styles.doneButton}>
-              <Text style={styles.doneLabel}>Terminé</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel={t('Terminé')} onPress={() => setPanel(null)} style={styles.doneButton}>
+              <Text style={styles.doneLabel}>{t('Terminé')}</Text>
             </Pressable>
           </View>
         </View>
@@ -272,7 +322,7 @@ export default function KotlinSettingsScreen() {
 }
 
 function SettingsRow({
-  icon, color, title, subtitle, danger, onPress, theme, fontScale,
+  icon, color, title, subtitle, danger, onPress, theme,
 }: {
   icon: string;
   color: string;
@@ -281,14 +331,13 @@ function SettingsRow({
   danger?: boolean;
   onPress: () => void;
   theme: ReturnType<typeof useTheme>;
-  fontScale: number;
 }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={[styles.itemRow, { borderBottomColor: theme.border }]}>
       <View style={[styles.itemIcon, { backgroundColor: `${color}20` }]}><MaterialCommunityIcons name={icon as any} size={21} color={color} /></View>
       <View style={styles.itemCopy}>
-        <Text style={[styles.itemTitle, { color: danger ? ACCENT : theme.text, fontSize: Math.round(14 * fontScale) }]}>{title}</Text>
-        <Text numberOfLines={2} style={[styles.itemSubtitle, { color: theme.textSecondary, fontSize: Math.round(12 * fontScale) }]}>{subtitle}</Text>
+        <Text style={[styles.itemTitle, { color: danger ? ACCENT : theme.text }]}>{title}</Text>
+        <Text numberOfLines={2} style={[styles.itemSubtitle, { color: theme.textSecondary }]}>{subtitle}</Text>
       </View>
       <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
     </Pressable>

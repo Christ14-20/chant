@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView,
-  StyleSheet, Text, View,
-} from 'react-native';
+import { ActivityIndicator, Image, Linking, ScrollView, StyleSheet, View } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { ComponentProps } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -67,7 +66,7 @@ async function openResource(uri: string): Promise<void> {
     await Linking.openURL(uri);
   } catch (error) {
     console.error(`Impossible d’ouvrir la ressource ${uri}.`, error);
-    Alert.alert('Ouverture impossible', 'Cette ressource ne peut pas être ouverte sur cet appareil.');
+    showLocalizedAlert('Ouverture impossible', 'Cette ressource ne peut pas être ouverte sur cet appareil.');
   }
 }
 
@@ -153,7 +152,7 @@ export default function ChantResourceScreen() {
       }
       player.play();
     } catch (error) {
-      Alert.alert('Lecture impossible', error instanceof Error ? error.message : 'Cette piste ne peut pas être lue.');
+      showLocalizedAlert('Lecture impossible', error instanceof Error ? error.message : 'Cette piste ne peut pas être lue.');
     }
   };
 
@@ -162,7 +161,7 @@ export default function ChantResourceScreen() {
       if (!await Sharing.isAvailableAsync()) throw new Error('Aucune application de lecture ou de partage PDF n’est disponible.');
       await Sharing.shareAsync(uri, { mimeType: 'application/pdf', dialogTitle: 'Ouvrir ou partager la partition', UTI: 'com.adobe.pdf' });
     } catch (error) {
-      Alert.alert('Ouverture impossible', error instanceof Error ? error.message : 'Cette partition PDF ne peut pas être ouverte.');
+      showLocalizedAlert('Ouverture impossible', error instanceof Error ? error.message : 'Cette partition PDF ne peut pas être ouverte.');
     }
   };
 

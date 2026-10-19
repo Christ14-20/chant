@@ -1,10 +1,8 @@
 import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
-import {
-  Pressable, ScrollView, StyleSheet, Text, TextInput, View,
-  Animated, LayoutAnimation, Platform, Keyboard,
-} from 'react-native';
+import { ScrollView, StyleSheet, View, Animated, LayoutAnimation, Platform, Keyboard } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedText as Text, LocalizedTextInput as TextInput } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';

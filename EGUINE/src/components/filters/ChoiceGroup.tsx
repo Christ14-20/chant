@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { LocalizedText as Text } from '@/i18n/localized-components';
 import { createThemedStyles } from '@/utils/themed-styles';
 
 export interface ChoiceGroupProps {

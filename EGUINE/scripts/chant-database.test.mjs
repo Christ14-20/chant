@@ -10,6 +10,7 @@ import { CHANT_CATEGORIES } from '../src/database/schema.ts';
 import { songbookChants } from '../src/data/songbookChants.ts';
 import { copyIntoPersistentStorage } from '../src/utils/personal-chant-storage-core.ts';
 import { sanitizeResourceName, validateChantFile } from '../src/utils/chant-resource-import-core.ts';
+import { resolveInitialCelebrations } from '../src/utils/initial-celebration.ts';
 
 function openMigratedDatabase(path = ':memory:', throughVersion = Number.POSITIVE_INFINITY) {
   const db = new DatabaseSync(path);
@@ -219,6 +220,27 @@ test('les préparations de Messe restent isolées et conservent l’ordre des ch
   assert.equal(db.prepare('SELECT count(*) AS count FROM mass_celebration_items WHERE celebration_id = ?').get('mass-b').count, 1);
   assert.equal(db.prepare('SELECT count(*) AS count FROM chants').get().count, 2);
   db.close();
+});
+
+test('une première préparation de Messe est créée une seule fois au premier lancement', () => {
+  const now = new Date(2026, 9, 19, 12);
+  const firstLaunch = resolveInitialCelebrations([], [], false, now, 'fr');
+  assert.equal(firstLaunch.celebrations.length, 1);
+  assert.equal(firstLaunch.celebrations[0].id, 'messe-first-run');
+  assert.equal(firstLaunch.celebrations[0].title, 'Ma première messe');
+  assert.deepEqual(firstLaunch.celebrations[0].selectedChants, {});
+  assert.ok(firstLaunch.celebrations[0].slotOrder.length > 0);
+  assert.equal(firstLaunch.hasBootstrappedCelebrations, true);
+
+  const afterDeletingAll = resolveInitialCelebrations([], [], true, now, 'fr');
+  assert.deepEqual(afterDeletingAll.celebrations, []);
+
+  const englishFirstLaunch = resolveInitialCelebrations([], [], false, now, 'en');
+  assert.equal(englishFirstLaunch.celebrations[0].title, 'My first Mass');
+
+  const existing = { ...firstLaunch.celebrations[0], id: 'saved-mass', title: 'Messe sauvegardée' };
+  const restored = resolveInitialCelebrations([existing], [], false, now, 'en');
+  assert.deepEqual(restored.celebrations, [existing]);
 });
 
 test('les chants peuvent être créés, modifiés et supprimés sans doublon', () => {

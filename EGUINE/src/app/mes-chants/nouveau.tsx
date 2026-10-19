@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
-import {
-  Alert, Image, Platform, Pressable, ScrollView, Text, TextInput, View,
-} from 'react-native';
+import { Image, Platform, ScrollView, View } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedText as Text, LocalizedTextInput as TextInput } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ import { savePersonalChant } from '@/database/chant-database';
 import type { Categorie, Chant, Langue, RessourceChant, TypeRessourceChant } from '@/types';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { goBackSafely } from '@/utils/navigation';
+import { useTranslation } from '@/i18n/use-translation';
 import { deletePersonalChantFiles, savePersonalChantFile } from '@/utils/personal-chant-storage';
 import { ActionColors } from '@/constants/theme';
 
@@ -63,6 +64,7 @@ function formatDuration(milliseconds: number): string {
 }
 
 export default function NouveauChantPersonnelScreen() {
+  const { language: interfaceLanguage } = useTranslation();
   const router = useRouter();
   const theme = useTheme();
   const isHydrated = useStoreHydrated();
@@ -85,13 +87,13 @@ export default function NouveauChantPersonnelScreen() {
 
   const startRecording = useCallback(async () => {
     if (Platform.OS === 'web') {
-      Alert.alert('Enregistrement mobile', 'L’enregistrement local est disponible dans l’application mobile.');
+      showLocalizedAlert('Enregistrement mobile', 'L’enregistrement local est disponible dans l’application mobile.');
       return;
     }
     try {
       const permission = await AudioModule.requestRecordingPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Microphone non autorisé', 'Autorisez l’accès au microphone dans les réglages pour enregistrer un chant.');
+        showLocalizedAlert('Microphone non autorisé', 'Autorisez l’accès au microphone dans les réglages pour enregistrer un chant.');
         return;
       }
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
@@ -99,7 +101,7 @@ export default function NouveauChantPersonnelScreen() {
       recorder.record();
       setIsPaused(false);
     } catch (error) {
-      Alert.alert('Enregistrement impossible', errorMessage(error));
+      showLocalizedAlert('Enregistrement impossible', errorMessage(error));
     }
   }, [recorder]);
 
@@ -118,7 +120,7 @@ export default function NouveauChantPersonnelScreen() {
       setIsPaused(false);
       await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
     } catch (error) {
-      Alert.alert('Enregistrement non finalisé', errorMessage(error));
+      showLocalizedAlert('Enregistrement non finalisé', errorMessage(error));
     }
   }, [recorder]);
 
@@ -128,20 +130,20 @@ export default function NouveauChantPersonnelScreen() {
       else recorder.pause();
       setIsPaused((paused) => !paused);
     } catch (error) {
-      Alert.alert('Action impossible', errorMessage(error));
+      showLocalizedAlert('Action impossible', errorMessage(error));
     }
   }, [isPaused, recorder]);
 
   const addImages = useCallback(async (fromCamera: boolean) => {
     if (Platform.OS === 'web') {
-      Alert.alert('Import mobile', 'La conservation permanente des partitions est disponible dans l’application mobile.');
+      showLocalizedAlert('Import mobile', 'La conservation permanente des partitions est disponible dans l’application mobile.');
       return;
     }
     try {
       if (fromCamera) {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
-          Alert.alert('Appareil photo non autorisé', 'Autorisez l’accès à l’appareil photo pour photographier une partition.');
+          showLocalizedAlert('Appareil photo non autorisé', 'Autorisez l’accès à l’appareil photo pour photographier une partition.');
           return;
         }
         const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 1 });
@@ -178,13 +180,13 @@ export default function NouveauChantPersonnelScreen() {
         })),
       ]);
     } catch (error) {
-      Alert.alert('Import de photos impossible', errorMessage(error));
+      showLocalizedAlert('Import de photos impossible', errorMessage(error));
     }
   }, []);
 
   const addPdf = useCallback(async () => {
     if (Platform.OS === 'web') {
-      Alert.alert('Import mobile', 'La conservation permanente des partitions est disponible dans l’application mobile.');
+      showLocalizedAlert('Import mobile', 'La conservation permanente des partitions est disponible dans l’application mobile.');
       return;
     }
     try {
@@ -206,7 +208,7 @@ export default function NouveauChantPersonnelScreen() {
         })),
       ]);
     } catch (error) {
-      Alert.alert('Import du PDF impossible', errorMessage(error));
+      showLocalizedAlert('Import du PDF impossible', errorMessage(error));
     }
   }, []);
 
@@ -217,7 +219,7 @@ export default function NouveauChantPersonnelScreen() {
         previewPlayer.pause();
         setRecordingUri(null);
       } catch (error) {
-        Alert.alert('Suppression impossible', errorMessage(error));
+        showLocalizedAlert('Suppression impossible', errorMessage(error));
         return;
       }
     }
@@ -237,11 +239,11 @@ export default function NouveauChantPersonnelScreen() {
   const saveChant = useCallback(async () => {
     if (isSaving) return;
     if (!isHydrated) {
-      Alert.alert('Bibliothèque en cours de chargement', 'Attendez la restauration de vos chants locaux avant de sauvegarder.');
+      showLocalizedAlert('Bibliothèque en cours de chargement', 'Attendez la restauration de vos chants locaux avant de sauvegarder.');
       return;
     }
     if (!title.trim() && !lyrics.trim() && attachments.length === 0) {
-      Alert.alert('Fiche vide', 'Ajoutez un titre, des paroles, un enregistrement ou un document avant de sauvegarder.');
+      showLocalizedAlert('Fiche vide', 'Ajoutez un titre, des paroles, un enregistrement ou un document avant de sauvegarder.');
       return;
     }
 
@@ -273,7 +275,7 @@ export default function NouveauChantPersonnelScreen() {
       const partition = savedResources.find((resource) => resource.type !== 'audio');
       const chant: Chant = {
         id: chantId,
-        titre: title.trim() || `Chant sans titre · ${new Date().toLocaleDateString('fr-FR')}`,
+        titre: title.trim() || `${interfaceLanguage === 'en' ? 'Untitled song' : 'Chant sans titre'} · ${new Date().toLocaleDateString(interfaceLanguage === 'en' ? 'en-US' : 'fr-FR')}`,
         paroles: lyrics.trim(),
         langue: language,
         categorie: category,
@@ -314,11 +316,11 @@ export default function NouveauChantPersonnelScreen() {
         await deletePersonalChantFiles(savedResources);
       } catch (cleanupError) {
         console.error('Certains fichiers locaux n’ont pas pu être supprimés après l’échec de la sauvegarde.', cleanupError);
-        Alert.alert('Sauvegarde incomplète', `${errorMessage(error)}\n\nCertains fichiers temporaires n’ont pas pu être supprimés.`);
+        showLocalizedAlert('Sauvegarde incomplète', `${errorMessage(error)}\n\nCertains fichiers temporaires n’ont pas pu être supprimés.`);
         setIsSaving(false);
         return;
       }
-      Alert.alert('Sauvegarde impossible', errorMessage(error));
+      showLocalizedAlert('Sauvegarde impossible', errorMessage(error));
     } finally {
       setIsSaving(false);
     }

@@ -1,6 +1,7 @@
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Platform, StyleSheet, TextInput, Animated, Pressable } from 'react-native';
+import { Platform, StyleSheet, Animated, type TextInput as NativeTextInput } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedTextInput as TextInput } from '@/i18n/localized-components';
 import { SymbolView } from 'expo-symbols';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -37,7 +38,7 @@ export function SearchBar({
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(value);
   const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<NativeTextInput>(null);
   const focusAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

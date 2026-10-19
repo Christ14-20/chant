@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Alert, Image, Modal, Platform, Pressable, ScrollView, Text, View,
-} from 'react-native';
+import { Image, Modal, Platform, ScrollView, View } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -128,7 +128,7 @@ export default function ChantPersonnelDetailScreen() {
         throw new Error('Ce fichier audio est manquant sur cet appareil.');
       }
     } catch (error) {
-      Alert.alert('Lecture impossible', errorMessage(error));
+      showLocalizedAlert('Lecture impossible', errorMessage(error));
       return;
     }
     if (playingAudioId !== resource.id) {
@@ -143,7 +143,7 @@ export default function ChantPersonnelDetailScreen() {
 
   const openPdf = async (resource: RessourceChant) => {
     if (Platform.OS === 'web') {
-      Alert.alert('PDF enregistré', 'Ce document est conservé dans le stockage local de l’application mobile.');
+      showLocalizedAlert('PDF enregistré', 'Ce document est conservé dans le stockage local de l’application mobile.');
       return;
     }
     try {
@@ -161,13 +161,13 @@ export default function ChantPersonnelDetailScreen() {
         UTI: 'com.adobe.pdf',
       });
     } catch (error) {
-      Alert.alert('Ouverture du PDF impossible', errorMessage(error));
+      showLocalizedAlert('Ouverture du PDF impossible', errorMessage(error));
     }
   };
 
   const removeResource = (resource: RessourceChant) => {
     if (!chant) return;
-    Alert.alert(
+    showLocalizedAlert(
       'Retirer ce document ?',
       'Seul ce fichier sera retiré de la fiche. Les autres ressources du chant resteront intactes.',
       [
@@ -203,7 +203,7 @@ export default function ChantPersonnelDetailScreen() {
               } catch (rollbackError) {
                 console.error('La restauration de la fiche après suppression du document a échoué.', rollbackError);
               }
-              Alert.alert('Suppression impossible', errorMessage(error));
+              showLocalizedAlert('Suppression impossible', errorMessage(error));
               return;
             }
             update(chant.id, updated);
@@ -219,7 +219,7 @@ export default function ChantPersonnelDetailScreen() {
                 await removeUnreferencedLocalFileRecord(released.uri);
               } catch (error) {
                 await setLocalFileAvailability(released.uri, 'failed', errorMessage(error));
-                Alert.alert('Fichier non supprimé', errorMessage(error));
+                showLocalizedAlert('Fichier non supprimé', errorMessage(error));
               }
             }
           })(); },

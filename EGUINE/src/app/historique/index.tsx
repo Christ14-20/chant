@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedText as Text, LocalizedTextInput as TextInput } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +13,7 @@ import type { Celebration } from '@/types';
 import { goBackSafely } from '@/utils/navigation';
 import { ActionColors } from '@/constants/theme';
 import { createThemedStyles } from '@/utils/themed-styles';
+import { useTranslation } from '@/i18n/use-translation';
 
 const COLORS = {
   background: '#FFFFFF',
@@ -36,11 +39,11 @@ function routeTitle(path: string): string {
   return 'Continuer votre activité';
 }
 
-function dateLabel(value: string | undefined): string {
+function dateLabel(value: string | undefined, language: 'fr' | 'en'): string {
   if (!value) return 'Date non précisée';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return date.toLocaleDateString(language === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function getPreparationChantCount(celebration: Celebration): number {
@@ -48,6 +51,7 @@ function getPreparationChantCount(celebration: Celebration): number {
 }
 
 export default function HistoryScreen() {
+  const { language } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
   const chants = useAppStore((state) => state.chants);
@@ -92,7 +96,7 @@ export default function HistoryScreen() {
     .slice(0, 10);
 
   const confirmClearChantHistory = () => {
-    Alert.alert(
+    showLocalizedAlert(
       'Effacer l’historique des chants ?',
       'Les chants restent dans votre bibliothèque et vos favoris.',
       [
@@ -105,7 +109,7 @@ export default function HistoryScreen() {
               .then(() => setChantHistory([]))
               .catch((error: unknown) => {
                 console.error('Impossible d’effacer l’historique des chants.', error);
-                Alert.alert('Effacement impossible', 'L’historique n’a pas pu être effacé.');
+                showLocalizedAlert('Effacement impossible', 'L’historique n’a pas pu être effacé.');
               });
           },
         },
@@ -114,7 +118,7 @@ export default function HistoryScreen() {
   };
 
   const confirmDeletePreparation = (celebration: Celebration) => {
-    Alert.alert(
+    showLocalizedAlert(
       'Supprimer cette préparation ?',
       `« ${celebration.title} » et sa sélection de chants seront supprimés. Les chants originaux ne seront pas touchés.`,
       [
@@ -172,11 +176,11 @@ export default function HistoryScreen() {
                 <View style={styles.rowCopy}>
                   <Text numberOfLines={1} style={styles.rowTitle}>{chant.titre}</Text>
                   <Text numberOfLines={1} style={styles.rowDetail}>
-                    {dateLabel(entry.lastViewedAt)} · {entry.viewCount} consultation{entry.viewCount === 1 ? '' : 's'}
+                    {dateLabel(entry.lastViewedAt, language)} · {entry.viewCount} consultation{entry.viewCount === 1 ? '' : 's'}
                   </Text>
                   {entry.listenCount > 0 && (
                     <Text numberOfLines={1} style={styles.rowDetail}>
-                      Dernière écoute : {dateLabel(entry.lastListenedAt ?? undefined)} · {entry.listenCount} écoute{entry.listenCount === 1 ? '' : 's'}
+                      Dernière écoute : {dateLabel(entry.lastListenedAt ?? undefined, language)} · {entry.listenCount} écoute{entry.listenCount === 1 ? '' : 's'}
                     </Text>
                   )}
                 </View>
@@ -189,7 +193,7 @@ export default function HistoryScreen() {
                     .then(() => setChantHistory((current) => current.filter((item) => item.chantId !== entry.chantId)))
                     .catch((error: unknown) => {
                       console.error(`Impossible de retirer le chant ${entry.chantId} de l’historique.`, error);
-                      Alert.alert('Action impossible', 'Ce chant n’a pas pu être retiré de l’historique.');
+                      showLocalizedAlert('Action impossible', 'Ce chant n’a pas pu être retiré de l’historique.');
                     });
                 }}
                 style={styles.removeButton}
@@ -224,7 +228,7 @@ export default function HistoryScreen() {
                 <View style={styles.rowCopy}>
                   <Text numberOfLines={1} style={styles.rowTitle}>{chant.titre}</Text>
                   <Text numberOfLines={1} style={styles.rowDetail}>
-                    Modifié le {dateLabel(chant.updated_at)}
+                    Modifié le {dateLabel(chant.updated_at, language)}
                     {chant.ressources?.length ? ` · ${chant.ressources.length} fichier(s)` : ''}
                   </Text>
                 </View>
@@ -278,11 +282,11 @@ export default function HistoryScreen() {
               <View style={styles.rowCopy}>
                 <Text numberOfLines={1} style={styles.rowTitle}>{celebration.title}</Text>
                 <Text numberOfLines={1} style={styles.rowDetail}>
-                  {dateLabel(celebration.date)} · {getPreparationChantCount(celebration)} chant(s)
+                  {dateLabel(celebration.date, language)} · {getPreparationChantCount(celebration)} chant(s)
                   {celebration.status === 'completed' ? ' · Terminée' : ' · Brouillon'}
                 </Text>
                 <Text numberOfLines={1} style={styles.rowDetail}>
-                  Créée {dateLabel(celebration.created_at)} · modifiée {dateLabel(celebration.updated_at)}
+                  Créée {dateLabel(celebration.created_at, language)} · modifiée {dateLabel(celebration.updated_at, language)}
                 </Text>
               </View>
             </Pressable>

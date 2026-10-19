@@ -1,10 +1,8 @@
 import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useState, useMemo, useCallback, useRef } from 'react';
-import {
-  Image, Pressable, StyleSheet, RefreshControl, Animated, View,
-  ScrollView, Text, useWindowDimensions,
-} from 'react-native';
+import { Image, StyleSheet, RefreshControl, Animated, View, ScrollView, useWindowDimensions } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -12,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '@/store/useAppStore';
 import { ActionColors } from '@/constants/theme';
+import { useTranslation } from '@/i18n/use-translation';
 
 // ============ DESIGN TOKENS ============
 const TOKENS = {
@@ -89,6 +88,7 @@ function getActivityIcon(path: string): string {
 export default function HomeScreen() {
   const theme = useTheme();
   const router = useRouter();
+  const { t } = useTranslation();
   const { width: screenWidth } = useWindowDimensions();
   const chants = useAppStore((s) => s.chants);
   const favorites = useAppStore((s) => s.favorites);
@@ -184,7 +184,7 @@ export default function HomeScreen() {
             <View style={styles.headerRight}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Ouvrir mon historique"
+                accessibilityLabel={t('Ouvrir mon historique')}
                 onPress={() => go('/historique')}
                 hitSlop={8}
                 style={styles.iconBtn}
@@ -200,12 +200,12 @@ export default function HomeScreen() {
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Rechercher un chant"
+            accessibilityLabel={t('Rechercher un chant')}
             onPress={() => go('/search')}
             style={({ pressed }) => [styles.searchBar, pressed && { opacity: 0.75 }]}
           >
             <MaterialCommunityIcons name="magnify" size={20} color={ActionColors.discovery} />
-            <Text style={styles.searchPlaceholder}>Rechercher un chant, une langue…</Text>
+            <Text style={styles.searchPlaceholder}>{t('Rechercher un chant, une langue…')}</Text>
             <View style={styles.searchActionWrap}>
               <MaterialCommunityIcons name="tune-variant" size={18} color={ActionColors.discovery} />
             </View>
@@ -223,7 +223,7 @@ export default function HomeScreen() {
               <View style={styles.heroTop}>
                 <View style={styles.heroEyebrowWrap}>
                   <View style={styles.heroEyebrowBar} />
-                  <Text style={styles.heroEyebrow}>CHANT DU JOUR</Text>
+                  <Text style={styles.heroEyebrow}>{t('CHANT DU JOUR')}</Text>
                 </View>
               </View>
               <View style={styles.heroMain}>
@@ -256,7 +256,7 @@ export default function HomeScreen() {
                   ]}
                 >
                   <MaterialCommunityIcons name="play" size={16} color="#FFFFFF" />
-                  <Text style={styles.heroPlayText}>Écouter</Text>
+                  <Text style={styles.heroPlayText}>{t('Écouter')}</Text>
                 </Pressable>
                 <View style={styles.heroCategorie}>
                   <View
@@ -266,7 +266,7 @@ export default function HomeScreen() {
                     ]}
                   />
                   <Text style={styles.heroCategorieText}>
-                    {CATEGORIE_LABELS[chantDuJour.categorie] || chantDuJour.categorie}
+                    {t(CATEGORIE_LABELS[chantDuJour.categorie] || chantDuJour.categorie)}
                   </Text>
                 </View>
               </View>
@@ -296,7 +296,7 @@ export default function HomeScreen() {
                 />
               </Pressable>
               <View style={styles.nowCopy}>
-                <Text style={styles.nowEyebrow}>EN COURS</Text>
+                <Text style={styles.nowEyebrow}>{t('EN COURS')}</Text>
                 <Text style={styles.nowTitle} numberOfLines={1}>
                   {currentChant.titre}
                 </Text>
@@ -315,13 +315,13 @@ export default function HomeScreen() {
           )}
 
           {(selectedMesseChantCount > 0 || resumableActivities.length > 0) && (
-            <Section eyebrow="VOTRE ESPACE" title="Reprendre">
+            <Section eyebrow={t('VOTRE ESPACE')} title={t('Reprendre')}>
               <View style={styles.resumeList}>
                 {selectedMesseChantCount > 0 && (
                   <ResumeActivityCard
                     icon="church"
-                    title="Programme de Messe"
-                    detail={`${selectedMesseChantCount} chant${selectedMesseChantCount === 1 ? '' : 's'} ajouté${selectedMesseChantCount === 1 ? '' : 's'}`}
+                    title={t('Programme de Messe')}
+                    detail={t('{{count}} chants ajoutés', { count: selectedMesseChantCount })}
                     onPress={() => go('/messe')}
                   />
                 )}
@@ -329,8 +329,8 @@ export default function HomeScreen() {
                   <ResumeActivityCard
                     key={activity.path}
                     icon={getActivityIcon(activity.path)}
-                    title={getActivityTitle(activity.path)}
-                    detail="Accéder à votre dernière activité"
+                    title={t(getActivityTitle(activity.path))}
+                    detail={t('Accéder à votre dernière activité')}
                     onPress={() => go(activity.path)}
                   />
                 ))}
@@ -341,9 +341,9 @@ export default function HomeScreen() {
           {/* ═══ TENDANCES ═══ */}
           {trending.length > 0 && (
             <Section
-              eyebrow="CETTE SEMAINE"
-              title="Tendances"
-              action={{ label: 'Voir tout', onPress: () => go('/chants') }}
+              eyebrow={t('CETTE SEMAINE')}
+              title={t('Tendances')}
+              action={{ label: t('Voir tout'), onPress: () => go('/chants') }}
             >
               <View style={styles.trendingGrid}>
                 {trending.map((chant, index) => (
@@ -368,9 +368,9 @@ export default function HomeScreen() {
           {/* ═══ NOUVEAUTÉS ═══ */}
           {nouveautes.length > 0 && (
             <Section
-              eyebrow="FRAÎCHEMENT AJOUTÉS"
-              title="Nouveautés"
-              action={{ label: 'Voir tout', onPress: () => go('/chants') }}
+              eyebrow={t('FRAÎCHEMENT AJOUTÉS')}
+              title={t('Nouveautés')}
+              action={{ label: t('Voir tout'), onPress: () => go('/chants') }}
             >
               <ScrollView
                 horizontal
@@ -395,14 +395,14 @@ export default function HomeScreen() {
                     >
                       <MaterialCommunityIcons name="music-note" size={24} color="#FFFFFF" />
                       <View style={styles.newBadge}>
-                        <Text style={styles.newBadgeText}>NOUVEAU</Text>
+                        <Text style={styles.newBadgeText}>{t('NOUVEAU')}</Text>
                       </View>
                     </LinearGradient>
                     <Text style={styles.newTitle} numberOfLines={2}>
                       {chant.titre}
                     </Text>
                     <Text style={styles.newMeta} numberOfLines={1}>
-                      {CATEGORIE_LABELS[chant.categorie] || chant.categorie}
+                      {t(CATEGORIE_LABELS[chant.categorie] || chant.categorie)}
                     </Text>
                   </Pressable>
                 ))}
@@ -432,19 +432,20 @@ function Section({
   action?: { label: string; onPress: () => void };
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <View style={styles.sectionLeft}>
           <View style={styles.sectionEyebrowWrap}>
             <View style={styles.sectionEyebrowBar} />
-            <Text style={styles.sectionEyebrow}>{eyebrow}</Text>
+            <Text style={styles.sectionEyebrow}>{t(eyebrow)}</Text>
           </View>
-          <Text style={styles.sectionTitle}>{title}</Text>
+          <Text style={styles.sectionTitle}>{t(title)}</Text>
         </View>
         {action && (
           <Pressable onPress={action.onPress} hitSlop={8}>
-            <Text style={styles.sectionAction}>{action.label}</Text>
+            <Text style={styles.sectionAction}>{t(action.label)}</Text>
           </Pressable>
         )}
       </View>
@@ -460,6 +461,7 @@ function TrendingRow({
   onPress: () => void; onPlay: () => void; onFavorite: () => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const heartScale = useRef(new Animated.Value(1)).current;
   const vues = chant.nombre_vues ?? chant.vues ?? 0;
 
@@ -467,7 +469,7 @@ function TrendingRow({
     <View style={[styles.trendingCard, { width: cardWidth }]}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Ouvrir ${chant.titre}`}
+        accessibilityLabel={`${t('Ouvrir')} ${chant.titre}`}
         onPress={onPress}
         style={styles.trendingMain}
       >
@@ -478,7 +480,7 @@ function TrendingRow({
           <Text style={styles.trendingIndex}>{String(index).padStart(2, '0')}</Text>
           <MaterialCommunityIcons name="music-note" size={34} color="#FFFFFF" />
           <Text style={styles.trendingArtworkCategory} numberOfLines={1}>
-            {CATEGORIE_LABELS[chant.categorie] || chant.categorie}
+            {t(CATEGORIE_LABELS[chant.categorie] || chant.categorie)}
           </Text>
         </LinearGradient>
         <View style={styles.trendingCopy}>
@@ -487,7 +489,7 @@ function TrendingRow({
           </Text>
           <View style={styles.trendingMetaRow}>
             <MaterialCommunityIcons name="eye-outline" size={11} color={theme.textSecondary} />
-            <Text style={styles.trendingMeta}>{vues} vues</Text>
+            <Text style={styles.trendingMeta}>{vues} {t('vues')}</Text>
             <Text style={styles.trendingMetaDot}>·</Text>
             <Text style={styles.trendingMeta} numberOfLines={1}>
               {LANG_LABELS[chant.langue] || chant.langue}
@@ -496,11 +498,11 @@ function TrendingRow({
         </View>
       </Pressable>
       <View style={styles.trendingActions}>
-        <Text style={styles.trendingCategory}>{CATEGORIE_LABELS[chant.categorie] || chant.categorie}</Text>
+        <Text style={styles.trendingCategory}>{t(CATEGORIE_LABELS[chant.categorie] || chant.categorie)}</Text>
         <View style={styles.trendingButtons}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Écouter ${chant.titre}`}
+            accessibilityLabel={`${t('Écouter')} ${chant.titre}`}
             onPress={onPlay}
             style={styles.trendingAction}
             hitSlop={6}
@@ -509,7 +511,7 @@ function TrendingRow({
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={isFavorite ? `Retirer ${chant.titre} des favoris` : `Ajouter ${chant.titre} aux favoris`}
+            accessibilityLabel={isFavorite ? `${t('Retirer')} ${chant.titre} ${t('des favoris')}` : `${t('Ajouter')} ${chant.titre} ${t('aux favoris')}`}
             onPress={() => {
               Animated.sequence([
                 Animated.spring(heartScale, { toValue: 1.3, useNativeDriver: true, speed: 60 }),
@@ -543,10 +545,11 @@ function ResumeActivityCard({
   onPress: () => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${title}. ${detail}`}
+      accessibilityLabel={`${t(title)}. ${t(detail)}`}
       onPress={onPress}
       style={({ pressed }) => [styles.resumeCard, pressed && { opacity: 0.75 }]}
     >
@@ -554,8 +557,8 @@ function ResumeActivityCard({
         <MaterialCommunityIcons name={icon as any} size={21} color={TOKENS.gold} />
       </View>
       <View style={styles.resumeCopy}>
-        <Text numberOfLines={1} style={styles.resumeTitle}>{title}</Text>
-        <Text numberOfLines={1} style={styles.resumeDetail}>{detail}</Text>
+        <Text numberOfLines={1} style={styles.resumeTitle}>{t(title)}</Text>
+        <Text numberOfLines={1} style={styles.resumeDetail}>{t(detail)}</Text>
       </View>
       <MaterialCommunityIcons name="chevron-right" size={22} color={theme.textSecondary} />
     </Pressable>

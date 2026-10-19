@@ -2,6 +2,7 @@ import * as SQLite from 'expo-sqlite';
 import * as FileSystem from 'expo-file-system/legacy';
 import type { Celebration, Chant, RessourceChant } from '@/types';
 import { initialChants } from '@/data/initialChants';
+import { resolveInitialCelebrations } from '@/utils/initial-celebration';
 import {
   CHANT_CATEGORIES,
   DATABASE_MIGRATIONS,
@@ -1032,20 +1033,30 @@ export async function initializeLocalChantDatabase(input: {
   personalChants: Chant[];
   favoriteIds: string[];
   celebrations: Celebration[];
-}): Promise<{ chants: Chant[]; favoriteIds: string[]; celebrations: Celebration[] }> {
+  hasBootstrappedCelebrations: boolean;
+  interfaceLanguage: 'fr' | 'en';
+}): Promise<{
+  chants: Chant[];
+  favoriteIds: string[];
+  celebrations: Celebration[];
+  hasBootstrappedCelebrations: true;
+}> {
   await getChantDatabase();
   await importChants(initialChants, { onConflict: 'ignore' });
   await importChants(input.personalChants, { onConflict: 'replace' });
   const savedFavoriteIds = await getFavoriteIds();
   await replaceFavorites([...new Set([...savedFavoriteIds, ...input.favoriteIds])]);
   const savedCelebrations = await getMassCelebrations();
-  const celebrationsById = new Map(savedCelebrations.map((celebration) => [celebration.id, celebration]));
-  for (const celebration of input.celebrations) {
-    celebrationsById.set(celebration.id, celebration);
-  }
+  const resolvedCelebrations = resolveInitialCelebrations(
+    savedCelebrations,
+    input.celebrations,
+    input.hasBootstrappedCelebrations,
+    new Date(),
+    input.interfaceLanguage,
+  );
   const availableChants = await getAllChants();
   const availableChantIds = new Set(availableChants.map((chant) => chant.id));
-  const celebrations = [...celebrationsById.values()].map((celebration) => ({
+  const celebrations = resolvedCelebrations.celebrations.map((celebration) => ({
     ...celebration,
     selectedChants: Object.fromEntries(
       Object.entries(celebration.selectedChants)
@@ -1054,5 +1065,10 @@ export async function initializeLocalChantDatabase(input: {
     ),
   }));
   await replaceMassCelebrations(celebrations);
-  return { chants: availableChants, favoriteIds: await getFavoriteIds(), celebrations };
+  return {
+    chants: availableChants,
+    favoriteIds: await getFavoriteIds(),
+    celebrations,
+    hasBootstrappedCelebrations: resolvedCelebrations.hasBootstrappedCelebrations,
+  };
 }

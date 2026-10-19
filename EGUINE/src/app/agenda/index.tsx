@@ -1,7 +1,9 @@
 import { useTheme } from '@/hooks/use-theme';
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { SymbolView } from 'expo-symbols';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackSafely } from '@/utils/navigation';
@@ -98,11 +100,11 @@ export default function AgendaScreen() {
     };
     setEvents((current) => [...current, event]);
     setSelectedFilter('Tous');
-    Alert.alert('Ajouté à votre agenda', 'Votre événement personnel a bien été ajouté.');
+    showLocalizedAlert('Ajouté à votre agenda', 'Votre événement personnel a bien été ajouté.');
   };
 
   const openEvent = (event: AgendaEvent) => {
-    Alert.alert(event.title, `${event.dateLabel} · ${event.time} (${event.duration})\n${event.location}`);
+    showLocalizedAlert(event.title, `${event.dateLabel} · ${event.time} (${event.duration})\n${event.location}`);
   };
 
   return (

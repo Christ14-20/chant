@@ -1,11 +1,14 @@
 import '../shims/shims';
 
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Appearance, Image, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Appearance, Image, Platform, View } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedText as Text } from '@/i18n/localized-components';
 import { Stack, usePathname } from 'expo-router';
 import { useAppStore } from '@/store/useAppStore';
 import { useStoreHydrated } from '@/hooks/use-store-hydrated';
 import { useTheme } from '@/hooks/use-theme';
+import { useTranslation } from '@/i18n/use-translation';
+import { DiscoveryGuideHost } from '@/components/ui/DiscoveryGuideHost';
 import {
   initializeLocalChantDatabase,
   replaceFavorites,
@@ -15,6 +18,7 @@ import {
 export default function RootLayout() {
   const themeMode = useAppStore((state) => state.themeMode);
   const theme = useTheme();
+  const { t } = useTranslation();
   const pathname = usePathname();
   const recordRecentActivity = useAppStore((state) => state.recordRecentActivity);
   const isHydrated = useStoreHydrated();
@@ -42,6 +46,8 @@ export default function RootLayout() {
       personalChants: state.personalChants,
       favoriteIds: state.favorites,
       celebrations: state.celebrations,
+      hasBootstrappedCelebrations: state.hasBootstrappedCelebrations,
+      interfaceLanguage: state.interfaceLanguage,
     })
       .then((initialized) => {
         if (!active) return;
@@ -54,6 +60,7 @@ export default function RootLayout() {
           favorites: initialized.favoriteIds,
           celebrations: initialized.celebrations,
           activeCelebrationId,
+          hasBootstrappedCelebrations: initialized.hasBootstrappedCelebrations,
         });
         setDatabaseReady(true);
       })
@@ -88,14 +95,14 @@ export default function RootLayout() {
         {databaseError ? (
           <>
             <Text accessibilityRole="alert" style={{ color: theme.text, fontSize: 15, textAlign: 'center' }}>
-              {databaseError}
+              {t('La base de chants est indisponible.')}
             </Text>
             <Pressable
               accessibilityRole="button"
               onPress={() => setRetry((value) => value + 1)}
               style={{ marginTop: 16, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 10, backgroundColor: theme.primary }}
             >
-              <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Réessayer</Text>
+              <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>{t('Réessayer')}</Text>
             </Pressable>
           </>
         ) : (
@@ -107,7 +114,7 @@ export default function RootLayout() {
               style={{ width: 220, height: 220, marginBottom: 20, backgroundColor: '#FFFFFF', borderRadius: 24 }}
             />
             <ActivityIndicator color="#7A1F3D" />
-            <Text style={{ marginTop: 12, color: theme.text }}>Ouverture de la bibliothèque hors connexion…</Text>
+            <Text style={{ marginTop: 12, color: theme.text }}>{t('Ouverture de la bibliothèque hors connexion…')}</Text>
           </>
         )}
       </View>
@@ -115,9 +122,12 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="historique/index" />
-    </Stack>
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="historique/index" />
+      </Stack>
+      <DiscoveryGuideHost ready={isHydrated && databaseReady} />
+    </>
   );
 }

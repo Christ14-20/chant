@@ -1,6 +1,8 @@
 import { createThemedStyles } from '@/utils/themed-styles';
 import { useState, useCallback } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, Alert } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
+import { showLocalizedAlert } from '@/i18n/alert';
+import { LocalizedPressable as Pressable, LocalizedTextInput as TextInput } from '@/i18n/localized-components';
 import { SymbolView } from 'expo-symbols';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -34,12 +36,12 @@ export default function NouvellePriereScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = useCallback(async () => {
-    if (!titre.trim()) { Alert.alert('Titre requis', 'Veuillez saisir un titre pour la prière'); return; }
-    if (!contenu.trim()) { Alert.alert('Contenu requis', 'Veuillez saisir le contenu de la prière'); return; }
+    if (!titre.trim()) { showLocalizedAlert('Titre requis', 'Veuillez saisir un titre pour la prière'); return; }
+    if (!contenu.trim()) { showLocalizedAlert('Contenu requis', 'Veuillez saisir le contenu de la prière'); return; }
     setIsSaving(true);
     await new Promise((r) => setTimeout(r, 800));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert('✅ Prière ajoutée', `"${titre}" a été ajoutée avec succès`, [
+    showLocalizedAlert('✅ Prière ajoutée', `"${titre}" a été ajoutée avec succès`, [
       { text: 'OK', onPress: goBackSafely },
     ]);
     setIsSaving(false);

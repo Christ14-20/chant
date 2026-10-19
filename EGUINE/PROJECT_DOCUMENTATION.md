@@ -175,7 +175,8 @@ EGUINE/
       "predictiveBackGestureEnabled": false
     },
     "web": { "output": "static", "favicon": "./assets/images/favicon.png" },
-    "plugins": ["expo-router", ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 148 }], "expo-font", "expo-web-browser"]
+    "plugins": ["expo-router", ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png",     "imageWidth": 280,
+    "resizeMode": "contain" }], "expo-font", "expo-web-browser"]
   }
 }
 ```
@@ -251,7 +252,8 @@ Le nom affiché et les icônes de l’application utilisent la marque **Cantique
       "predictiveBackGestureEnabled": false
     },
     "web": { "output": "static", "favicon": "./assets/images/favicon.png" },
-    "plugins": ["expo-router", ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 148 }], "expo-font", "expo-web-browser"]
+    "plugins": ["expo-router", ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png",     "imageWidth": 280,
+    "resizeMode": "contain" }], "expo-font", "expo-web-browser"]
   }
 }
 ```

@@ -1,7 +1,7 @@
 import '../shims/shims';
 
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Appearance, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Appearance, Image, Platform, Pressable, Text, View } from 'react-native';
 import { Stack, usePathname } from 'expo-router';
 import { useAppStore } from '@/store/useAppStore';
 import { useStoreHydrated } from '@/hooks/use-store-hydrated';
@@ -100,6 +100,12 @@ export default function RootLayout() {
           </>
         ) : (
           <>
+            <Image
+              accessibilityLabel="Chorale chantant, logo de Cantique Guinée"
+              source={require('../../assets/images/splash-icon.png')}
+              resizeMode="contain"
+              style={{ width: 220, height: 220, marginBottom: 20, backgroundColor: '#FFFFFF', borderRadius: 24 }}
+            />
             <ActivityIndicator color="#7A1F3D" />
             <Text style={{ marginTop: 12, color: theme.text }}>Ouverture de la bibliothèque hors connexion…</Text>
           </>

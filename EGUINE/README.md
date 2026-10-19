@@ -30,7 +30,9 @@ npm run web
 - Icône de lancement : `assets/images/splash-icon.png`
 - Favicon web : `assets/images/favicon.png`
 
-Le symbole associe une croix, un livre ouvert et une note de musique dans la palette bordeaux, ivoire et or. La signature est « La voix de nos célébrations ».
+Le symbole de l’application associe une croix, un livre ouvert et une note de musique dans la palette bordeaux, ivoire et or. L’écran de lancement et l’attente d’ouverture de la bibliothèque affichent l’illustration fournie représentant une chorale qui chante, mains levées. La signature de marque est « La voix de nos célébrations ».
+
+Expo Go conserve son propre écran de démarrage marqué Expo ; l’écran de lancement personnalisé est appliqué aux builds natifs de Cantique Guinée.
 
 ## Vérifications
 

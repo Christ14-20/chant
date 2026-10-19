@@ -1,3 +1,4 @@
+import { createThemedStyles } from '@/utils/themed-styles';
 import type { ReactNode } from 'react';
 import { View, StyleSheet } from 'react-native';
 
@@ -22,7 +23,7 @@ export function HintRow({ title = 'Try editing', hint = 'app/index.tsx' }: HintR
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   stepRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

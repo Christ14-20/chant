@@ -57,8 +57,9 @@ EGUINE/
 │   │   └── use-color-scheme.web.ts
 │   ├── store/                # Zustand store
 │   │   └── useAppStore.ts    # État global de l'app
-│   ├── data/                 # Données mock
-│   │   └── mockData.ts       # chants, prieres, lectures, saints, paroisses, messes
+│   ├── data/                 # Contenu initial de la bibliothèque
+│   │   ├── initialChants.ts  # Agrégation du contenu initial importé dans SQLite
+│   │   └── songbookChants.ts # Chants autorisés du carnet Saint-Pothin (2013)
 │   ├── types/                # Types TypeScript
 │   │   ├── index.ts          # Tous les types (Chant, Priere, Lecture, Saint, Parish, etc.)
 │   │   └── css.d.ts
@@ -361,29 +362,14 @@ export const Spacing = { half: 2, one: 4, two: 8, three: 16, four: 24, five: 32,
 
 ---
 
-## 7. Données Mock
+## 7. Contenu local
 
-### 7.1 `src/data/mockData.ts`
-
-**Exporte** :
-- `chants: Chant[]` — liste de chants liturgiques
-- `prieres: Priere[]` — liste de prières
-- `lectures: Lecture[]` — lectures bibliques
-- `saints: Saint[]` — saints du jour
-- `paroisses: Parish[]` — paroisses (4 paroisses en Guinée)
-- `messes: Messe[]` — messes avec items par moment
-- `joursMesse: Record<string, Messe>` — messes par date
-- `tags: Tag[]` — tags pour les chants
-
-**Fonctions** :
-- `getLecture(date: string)` → Lecture | undefined
-- `getSaint(date: string)` → Saint | undefined
-- `getChantSuggestion(chant: Chant)` → Chant[]
+Les chants sont stockés dans SQLite. `src/data/initialChants.ts` regroupe les chants latins et les chants autorisés extraits du carnet Saint-Pothin. Les contenus sont importés au premier démarrage ; les lectures, saints, horaires de paroisses, prières, événements d’agenda et notifications ne sont pas préremplis avec des données de démonstration.
 
 ### 7.2 Types (`src/types/index.ts`)
 
 **Types principaux** :
-- `Langue` : 'fr' | 'soussou' | 'poular' | 'malinke' | 'kissi' | 'guerze' | 'toma' | 'kpele' | 'baga' | 'loma' | 'mano' | 'kono' | 'en'
+- `Langue` : 'fr' | 'la' | 'soussou' | 'poular' | 'malinke' | 'kissi' | 'guerze' | 'toma' | 'kpele' | 'baga' | 'loma' | 'mano' | 'kono' | 'en'
 - `Categorie` : 'entree' | 'kyrie' | 'gloria' | 'psaume' | 'acclamation' | 'offertoire' | 'sanctus' | 'agnus_dei' | 'communion' | 'action_grace' | 'chant_final' | 'louange' | 'adoration' | 'penitence' | 'marial' | 'funerailles' | 'autre'
 - `TempsLiturgique` : 'avent' | 'noel' | 'careme' | 'triduum_pascal' | 'temps_pascal' | 'temps_ordinaire'
 - `MomentMesse` : 'entree' | 'liturgie_parole' | 'liturgie_eucharistique' | 'communion' | 'envoi'
@@ -574,26 +560,31 @@ router.replace('/home');
 
 ---
 
-## 12. Page de Messe (`messe.tsx`)
+## 12. Programme et mode célébration de la Messe
 
 ### 12.1 Structure
 
-- **Header** : Titre "Messe" + date du jour
-- **Section** : Messes du jour par moment (entree, liturgie_parole, liturgie_eucharistique, communion, envoi)
-- **Liste** : `FlatList` ou `ScrollView` avec `MesseItem` pour chaque moment
-- **Détails** : Chants associés à chaque moment de la messe
+- **Écran du programme** : `src/app/(tabs)/messe/index.tsx` affiche les chants associés à chaque temps et permet de composer le programme.
+- **Mode célébration** : plein écran présenté dans une `Modal`, sans barre d’onglets superposée.
+- **Séquence** : 13 parties, dont le Credo et la Prière universelle, réparties entre ouverture, liturgie de la Parole, liturgie eucharistique et envoi.
+- **Navigation** : sélection directe d’une partie dans le bandeau horizontal, ou déplacement avec les boutons fixes « Précédent » et « Suivant ».
+- **Chants** : les chants déjà associés à la partie apparaissent sous forme de sélecteur horizontal. « Ajouter » ouvre une sélection sans quitter le mode célébration.
+- **Paroles** : zone de lecture distincte et défilante ; les contrôles de partie restent disponibles pendant la lecture.
+- **Médias** : lecture audio quand un fichier est disponible ; les partitions et documents associés peuvent être ouverts depuis le mode.
+- **Petits écrans** : une disposition compacte est appliquée lorsque la hauteur disponible est inférieure à 600 dp.
 
 ### 12.2 Composants utilisés
 
-- Composants `messe/` — Composants spécifiques à la messe
-- `ChantCard` — Pour les chants de messe
-- `ThemedText`, `ThemedView` — Layout
+- `CelebrationMode` — sélecteurs de partie et de chant, paroles, médias et navigation.
+- `getCelebrationSlots()` — construit les parties à partir du programme et des chants associés.
+- `useAppStore` — conserve les sélections de chants du programme.
 
 ### 12.3 Logique
 
-- `joursMesse[date]` → Messe du jour
-- Affichage des `MesseItem` par `MomentMesse`
-- Navigation vers `chant/[id]` pour chaque chant de messe
+- Changer de partie actualise le chant et les paroles affichés sans quitter le mode.
+- Une partie sans chant propose d’en ajouter un sur place.
+- Une partie contenant plusieurs chants expose un sélecteur horizontal ; la sélection reste indépendante pour chaque partie.
+- Les paroles longues défilent dans leur propre zone, sans déplacer les boutons de navigation.
 
 ---
 
@@ -683,9 +674,7 @@ router.replace('/home');
 
 ### 17.2 Logique
 
-- `getSaint(new Date().toISOString())` — Saint du jour
-- `getLecture(new Date().toISOString())` — Lecture du jour
-- `lectures` depuis `mockData`
+Les lectures ne s’affichent que lorsqu’une source de contenu réelle est intégrée.
 
 ---
 
@@ -1029,3 +1018,73 @@ npx expo start --ios
 - **`npx expo-doctor`** : Tous les 21 checks passent ✅
 - **`npx tsc --noEmit`** : Zéro erreur TypeScript ✅
 - **`npx expo start`** : Dev server fonctionne ✅
+
+---
+
+## 29. Mes chants — bibliothèque personnelle locale
+
+- **Routes** : `src/app/mes-chants/index.tsx` (bibliothèque), `src/app/mes-chants/nouveau.tsx` (création) et `src/app/mes-chants/[id].tsx` (détail).
+- **Accès** : entrée depuis le catalogue des chants. Les chants personnels sont marqués privés et restent sur l’appareil.
+- **Contenu** : titre et métadonnées, paroles, enregistrement audio, images de partition et documents PDF.
+- **Persistance** : Zustand/AsyncStorage conserve les métadonnées ; les fichiers importés sont copiés dans le stockage documentaire de l’application.
+- **Réutilisation** : les chants personnels sont intégrés au catalogue local et peuvent être sélectionnés dans le programme de Messe.
+- **Limites du MVP** : pas de synchronisation serveur, partage public, OCR ni résolution de conflits. Les médias et les permissions natives doivent être validés sur appareil ; la remise des PDF dépend des applications disponibles sur le système.
+
+## 30. Base SQLite locale des chants
+
+### Architecture et démarrage
+
+- `expo-sqlite` ouvre `eguine.db`, persistée par l’application et disponible hors connexion. Le layout attend l’hydratation Zustand, exécute les migrations et importe ensuite le catalogue fourni ainsi que les chants personnels déjà enregistrés.
+- `src/database/chant-database.ts` contient les opérations paramétrées, l’import idempotent, la recherche paginée, les favoris, les ressources et la persistance du programme de Messe. Les écrans catalogue, recherche, collections, bibliothèque personnelle et sélection de chants pour la Messe demandent des pages SQLite au lieu de filtrer la bibliothèque complète en mémoire.
+- Zustand reste une projection de compatibilité pour les écrans et fonctionnalités existants qui attendent un tableau de chants. Les changements de favoris et de programme sont recopiés dans SQLite ; les nouveaux écrans de recherche et de consultation paginent directement depuis SQLite.
+- Le backend distant n’est pas remplacé : aucun service de synchronisation de chants n’était présent dans cette application. Les colonnes d’état et la table `sync_outbox` préparent une synchronisation ultérieure sans la rendre nécessaire pour l’utilisation locale.
+
+### Schéma et migrations
+
+- La migration 1 (`src/database/schema.ts`) crée `chants`, `categories`, `chant_categories`, `tags`, `chant_tags`, `mass_parts`, `chant_mass_parts`, `chant_variants`, `favorites`, `personal_library`, `local_files`, `chant_resources`, `mass_celebrations`, `mass_celebration_items` et `sync_outbox`.
+- Les associations catégorie/chant et partie de Messe/chant sont plusieurs-à-plusieurs avec clés primaires composites ; un chant n’est donc pas dupliqué lorsqu’il reçoit plusieurs catégories ou usages liturgiques.
+- Les champs usuels (titre, paroles, langue, auteur, compositeur, tonalité, tempo, droits, publication et compteurs) sont indexables en colonnes ; les métadonnées supplémentaires sont conservées en JSON. Les variantes et ressources ont des tables dédiées.
+- Les migrations sont suivies avec `PRAGMA user_version`. La migration 2 ajoute FTS5 externe et ses triggers de mise à jour. La migration 3 ajoute les métadonnées/statuts des préparations et `chant_history`. Si FTS5 n’est pas compilé dans SQLite sur une plateforme, l’application signale l’indisponibilité et retombe sur une recherche `LIKE` paramétrée.
+- Index SQL : titre, langue/catégorie, mise à jour, relations de catégories/tags/parties, favoris, bibliothèque personnelle, ressources locales et file de synchronisation.
+
+### Fichiers locaux et disponibilité
+
+- Les médias ne sont pas stockés dans SQLite : `local_files` conserve leurs chemins, type MIME, taille, disponibilité et état de synchronisation ; `chant_resources` relie un média à un ou plusieurs chants.
+- Les imports sont copiés du cache éventuel vers `FileSystem.documentDirectory/mes-chants/`. L’existence du fichier et l’espace libre sont vérifiés avant copie ; les erreurs de copie remontent à l’écran. Les écrans vérifient aussi l’existence des médias avant lecture ou ouverture et enregistrent les fichiers manquants.
+- La suppression d’une ressource vérifie les autres références avant de supprimer le fichier. La base distingue import en cours, disponible, absent ou en échec, et fichiers locaux à synchroniser ultérieurement.
+
+### Commandes et validations
+
+- Installation des dépendances : `npm install` (Expo SDK 57 ; `expo-sqlite ~57.0.4`).
+- Lancer l’application : `npm start` ; plateformes : `npm run android`, `npm run ios` ou `npm run web`.
+- Vérification TypeScript : `npx tsc --noEmit`.
+- Tests SQLite : `npm run test:database` (Node.js 22.13+ avec `node:sqlite`; la suite utilise Node 24 dans l’environnement de développement).
+- La suite teste migrations et réouverture d’un fichier persistant, historique dédupliqué et comptage des écoutes, isolation et ordre des chants dans les préparations, CRUD, imports sans doublons, associations multiples, recherche FTS/titre/paroles/catégorie, favoris, fichiers absents et partagés, erreurs d’import, ainsi qu’un jeu de 10 000 chants paginé.
+- Compatibilité runtime à confirmer par builds et essais appareil iOS/Android. Expo SQLite fournit aussi un backend web ; l’export web doit être contrôlé avec le serveur Expo utilisé au déploiement.
+
+### Limites restantes
+
+- Les tests Node valident le schéma et les requêtes SQLite avec le moteur `node:sqlite`, et simulent les cas d’import via un adaptateur ; ils ne remplacent pas une validation native des permissions, de l’espace disque, des interruptions audio et des formats de fichiers sur iOS/Android.
+- Le tableau Zustand reste utilisé par quelques composants historiques, notamment certaines statistiques et écrans d’accueil. Il contient encore les données déjà chargées (catalogue fourni et chants personnels) ; les vues de listes/recherche évolutives, elles, sont paginées.
+- La synchronisation serveur, les règles de résolution de conflits, le téléchargement sélectif de médias et la gestion de quota de stockage restent à construire lorsqu’un backend sera défini.
+
+## 31. Catalogue unifié et historique local
+
+- Le catalogue Chants centralise la recherche, les filtres principaux (tous, catégories, langues, humeur et chants de Messe), les filtres avancés (saison et disponibilité des médias), les favoris, les chants personnels et l’accès à l’historique. Les grandes cartes de catégories/langues/moments qui répétaient ces accès ont été retirées de l’accueil ; celui-ci privilégie la reprise des activités, les tendances et les nouveautés.
+- `src/app/historique/index.tsx` regroupe les chants consultés/écoutés, les préparations persistantes et les chants personnels modifiés récemment. Les consultations sont dédupliquées par identifiant stable, avec le dernier accès et un compteur ; retirer une entrée ou effacer l’historique ne supprime pas le chant.
+- Les écoutes ne sont comptées que depuis les lecteurs audio réels (audio local personnel et lecture du mode Célébration) après une durée significative ; le bouton de lecture simulé du détail des chants n’est pas interprété comme une écoute.
+- Les préparations utilisent les mêmes identifiants de chants, conservent l’ordre par partie et restent isolées les unes des autres. On peut reprendre une ancienne préparation ou la supprimer après confirmation. Les brouillons ne sont pas confondus avec la simple visite de l’écran Messe.
+- L’accueil propose une reprise rapide de la préparation active et des dernières activités. L’entrée Historique est aussi accessible depuis l’accueil, le catalogue Chants et le profil.
+
+## 32. Ressources d’un chant
+
+- Le détail d’un chant garde les paroles dans une zone à défilement manuel standard ; les contrôles de vitesse et de défilement automatique ont été retirés.
+- Le bouton unique « Ressources » ouvre un menu contenant les paroles, les partitions, les parties vocales et les accords. Les mêmes options sont accessibles depuis le détail des chants personnels.
+- Les routes `/chant/[id]/partition`, `/chant/[id]/voix` et `/chant/[id]/accords` sont propres à chaque identifiant de chant. Les partitions issues des URL directes, variantes et fichiers PDF/images sont présentées sur la page de partition ; les parties soprano, alto, ténor et basse sont proposées, avec un état « à venir » si aucun enregistrement vocal n’est associé.
+- Les pages Voix et Accords existent même lorsque leurs ressources ne sont pas encore disponibles; aucun contenu audio ou musical fictif n’est ajouté.
+
+## 33. Couleurs sémantiques des actions
+
+- `src/constants/theme.ts` expose `ActionColors` comme palette partagée : bordeaux pour l’action principale et les favoris, bleu ardoise pour la lecture, vert-gris pour la recherche et la découverte, vert doux pour les confirmations/succès, et rouge atténué pour les actions destructives.
+- Les couleurs sont appliquées aux icônes et accents des actions, avec des variantes claires pour les fonds. Les catégories liturgiques et les éléments de contenu conservent leurs propres couleurs lorsqu’elles portent une signification distincte.
+- Cette convention distingue les fonctions sans multiplier les couleurs vives ni transformer les surfaces principales en blocs colorés.

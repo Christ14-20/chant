@@ -1,3 +1,5 @@
+import { useTheme } from '@/hooks/use-theme';
+import { createThemedStyles } from '@/utils/themed-styles';
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -6,8 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackSafely } from '@/utils/navigation';
 import { useAppStore } from '@/store/useAppStore';
 import type { Langue } from '@/types';
+import { ActionColors } from '@/constants/theme';
 
-const COLORS = { background: '#FFFFFF', card: '#FFFFFF', gold: '#D4AF37', rose: '#D96A8E', text: '#111827', muted: '#6B7280', border: '#E5E7EB' };
+const COLORS = { background: '#FFFFFF', card: '#FFFFFF', gold: ActionColors.primary, rose: ActionColors.primary, text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF' };
 
 type ContentType = 'all' | 'chants' | 'prieres' | 'lectures';
 type FavMood = 'joyeux' | 'priere' | 'meditatif' | 'dynamique' | 'paisible' | 'solennel';
@@ -68,8 +71,9 @@ const SORT_OPTIONS: { id: SortOption; label: string }[] = [
   { id: 'durationDesc', label: 'Durée : longue → courte' },
 ];
 const LANGUAGE_LABELS: Record<Langue, string> = {
-  fr: 'Français', soussou: 'Soussou', poular: 'Poular', malinke: 'Malinké', kissi: 'Kissi', guerze: 'Guerzé',
-  toma: 'Toma', kpele: 'Kpelé', baga: 'Baga', loma: 'Loma', mano: 'Mano', kono: 'Kono', en: 'Anglais',
+  fr: 'Français', la: 'Latin', es: 'Espagnol', soussou: 'Soussou', poular: 'Poular', malinke: 'Malinké', kissi: 'Kissi',
+  guerze: 'Guerzé', toma: 'Toma', kpele: 'Kpelé', baga: 'Baga', loma: 'Loma', mano: 'Mano', kono: 'Kono',
+  en: 'Anglais',
 };
 
 function toggleValue<T>(values: T[], value: T): T[] {
@@ -81,6 +85,7 @@ function normalizeLabel(value: string): string {
 }
 
 export default function FavorisScreen() {
+  useTheme();
   const router = useRouter();
   const chants = useAppStore((state) => state.chants);
   const prieres = useAppStore((state) => state.prieres);
@@ -183,7 +188,7 @@ export default function FavorisScreen() {
           <MaterialCommunityIcons name="sort-variant" size={21} color={COLORS.text} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Filtrer" onPress={() => { setDraftFilters(filters); setFilterVisible(true); }} style={styles.topAction}>
-          <MaterialCommunityIcons name="tune-variant" size={21} color={activeFilterCount > 0 ? COLORS.gold : COLORS.text} />
+          <MaterialCommunityIcons name="tune-variant" size={21} color={activeFilterCount > 0 ? ActionColors.discovery : COLORS.text} />
           {activeFilterCount > 0 && <View style={styles.badge}><Text style={styles.badgeText}>{activeFilterCount}</Text></View>}
         </Pressable>
       </View>
@@ -200,7 +205,7 @@ export default function FavorisScreen() {
         </View>
 
         <View style={styles.searchBox}>
-          <MaterialCommunityIcons name="magnify" size={20} color={COLORS.muted} />
+          <MaterialCommunityIcons name="magnify" size={20} color={ActionColors.discovery} />
           <TextInput accessibilityLabel="Rechercher un chant favori" value={query} onChangeText={setQuery} placeholder="Rechercher un chant…" placeholderTextColor={COLORS.muted} style={styles.searchInput} />
           {query.length > 0 && <Pressable accessibilityRole="button" accessibilityLabel="Effacer la recherche" onPress={() => setQuery('')}><MaterialCommunityIcons name="close-circle" size={19} color={COLORS.muted} /></Pressable>}
         </View>
@@ -209,7 +214,7 @@ export default function FavorisScreen() {
 
         {filtered.length === 0 ? (
           <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="heart-outline" size={56} color="#94A3B880" />
+            <MaterialCommunityIcons name="heart-outline" size={56} color="#0A1F4480" />
             <Text style={styles.emptyText}>
               {query.trim() ? `Aucun résultat pour « ${query.trim()} »` : activeFilterCount > 0 ? 'Aucun chant favori ne correspond aux filtres' : 'Aucun chant favori pour le moment'}
             </Text>
@@ -286,7 +291,7 @@ function FavoriteRow({ entry, onOpen, onRemove }: { entry: FavoriteEntry; onOpen
     <View style={styles.favoriteRow}>
       <Pressable onPress={onOpen} style={styles.rowMain}>
         <View style={styles.rowArtwork}>
-          <MaterialCommunityIcons name={entry.isPriere ? 'hands-pray' : 'music-note'} size={21} color="#60A5FA" />
+          <MaterialCommunityIcons name={entry.isPriere ? 'hands-pray' : 'music-note'} size={21} color="#0A1F44" />
         </View>
         <View style={styles.rowCopy}>
           <Text numberOfLines={1} style={styles.rowTitle}>{entry.title}</Text>
@@ -327,7 +332,7 @@ function ChoicePill({ label, selected, onPress }: { label: string; selected: boo
   return <Pressable onPress={onPress} style={[styles.choicePill, selected && styles.choicePillSelected]}><Text style={[styles.choiceLabel, selected && styles.choiceLabelSelected]}>{label}</Text></Pressable>;
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   topBar: { minHeight: 54, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.border },
   backButton: { width: 38, height: 42, alignItems: 'center', justifyContent: 'center' },
@@ -336,21 +341,21 @@ const styles = StyleSheet.create({
   badge: { position: 'absolute', top: 3, right: 0, width: 16, height: 16, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: COLORS.gold },
   badgeText: { color: COLORS.background, fontSize: 9, fontWeight: '800' },
   content: { gap: 12, paddingBottom: 34 },
-  statsHeader: { height: 80, flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginTop: 8, paddingHorizontal: 16, borderRadius: 14, backgroundColor: '#23385A' },
-  statsIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: '#D96A8E55' },
+  statsHeader: { height: 80, flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginTop: 8, paddingHorizontal: 16, borderRadius: 14, backgroundColor: '#0A1F44' },
+  statsIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: '#7A1F3D55' },
   statsCopy: { flex: 1, gap: 3 },
   statsTitle: { color: COLORS.text, fontSize: 16, fontWeight: '700' },
   statsSubtitle: { color: '#FFFFFFCC', fontSize: 12 },
   searchBox: { minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: 9, marginHorizontal: 16, paddingHorizontal: 12, borderWidth: 1, borderColor: COLORS.border, borderRadius: 12, backgroundColor: COLORS.card },
   searchInput: { flex: 1, minHeight: 42, color: COLORS.text, fontSize: 14 },
   activeChips: { gap: 6, paddingHorizontal: 16 },
-  activeChip: { minHeight: 31, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, borderRadius: 16, backgroundColor: '#334155' },
+  activeChip: { minHeight: 31, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 9, borderRadius: 16, backgroundColor: '#0A1F44' },
   activeChipLabel: { color: COLORS.text, fontSize: 11 },
   clearAll: { minHeight: 31, justifyContent: 'center', paddingHorizontal: 8 },
   clearAllLabel: { color: COLORS.gold, fontSize: 11, fontWeight: '700' },
-  favoriteRow: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 16, paddingVertical: 9, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#243450' },
+  favoriteRow: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 16, paddingVertical: 9, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#0A1F44' },
   rowMain: { flex: 1, minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rowArtwork: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#3B82F626' },
+  rowArtwork: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#0A1F4426' },
   rowCopy: { flex: 1, gap: 3 },
   rowTitle: { color: COLORS.text, fontSize: 15, fontWeight: '600' },
   rowArtist: { color: COLORS.muted, fontSize: 12 },

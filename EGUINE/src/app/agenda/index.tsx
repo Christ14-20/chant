@@ -1,7 +1,8 @@
+import { useTheme } from '@/hooks/use-theme';
+import { createThemedStyles } from '@/utils/themed-styles';
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SymbolView } from 'expo-symbols';
-import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackSafely } from '@/utils/navigation';
 
@@ -19,19 +20,19 @@ type AgendaEvent = {
 type EventFilter = 'Tous' | 'Messe' | 'Catéchisme' | 'Réunion' | 'Personnel' | 'Chorale' | 'Prière';
 
 const COLORS = {
-  background: '#F9FAFB',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
-  primary: '#006B76',
+  primary: '#0A1F44',
   navy: '#0A1F44',
-  gold: '#D4AF37',
-  text: '#111827',
-  muted: '#6B7280',
-  border: '#E5E7EB',
-  green: '#059669',
-  red: '#DC2626',
-  purple: '#7C3AED',
-  orange: '#D97706',
-  rose: '#D96A8E',
+  gold: '#7A1F3D',
+  text: '#0A1F44',
+  muted: '#0A1F44',
+  border: '#FFFFFF',
+  green: '#7A1F3D',
+  red: '#7A1F3D',
+  purple: '#0A1F44',
+  orange: '#7A1F3D',
+  rose: '#7A1F3D',
 };
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -46,15 +47,6 @@ const EVENT_COLORS: Record<EventType, string> = {
   prière: COLORS.gold,
 };
 
-const INITIAL_EVENTS: AgendaEvent[] = [
-  { id: '1', title: 'Messe dominicale', dayIndex: 6, type: 'messe', dateLabel: '22 sept.', time: '08:30', duration: '1h30', location: 'Sainte Marie — Conakry' },
-  { id: '2', title: 'Répétition chorale', dayIndex: 6, type: 'chorale', dateLabel: '22 sept.', time: '16:00', duration: '2h', location: 'Salle paroissiale' },
-  { id: '3', title: 'Catéchisme enfants', dayIndex: 0, type: 'catéchisme', dateLabel: '23 sept.', time: '17:00', duration: '1h', location: 'Paroisse Sainte Marie' },
-  { id: '4', title: 'Réunion des jeunes', dayIndex: 1, type: 'réunion', dateLabel: '24 sept.', time: '19:00', duration: '1h30', location: 'Centre paroissial' },
-  { id: '5', title: 'Adoration eucharistique', dayIndex: 3, type: 'prière', dateLabel: '26 sept.', time: '18:00', duration: '1h', location: 'Chapelle' },
-  { id: '6', title: 'Messe anticipée', dayIndex: 5, type: 'messe', dateLabel: '28 sept.', time: '18:00', duration: '1h', location: 'Sainte Marie — Conakry' },
-];
-
 const TYPE_LABELS: Record<EventType, string> = {
   messe: 'Messe',
   catéchisme: 'Catéchisme',
@@ -65,13 +57,14 @@ const TYPE_LABELS: Record<EventType, string> = {
 };
 
 export default function AgendaScreen() {
-  const router = useRouter();
+  useTheme();
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedFilter, setSelectedFilter] = useState<EventFilter>('Tous');
-  const [selectedDayIndex, setSelectedDayIndex] = useState(6);
-  const [events, setEvents] = useState(INITIAL_EVENTS);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(() => (new Date().getDay() + 6) % 7);
+  const [events, setEvents] = useState<AgendaEvent[]>([]);
 
-  const referenceDate = new Date(2024, 8 + monthOffset, 22);
+  const referenceDate = new Date();
+  referenceDate.setMonth(referenceDate.getMonth() + monthOffset);
   const weekStart = new Date(referenceDate);
   weekStart.setDate(referenceDate.getDate() - ((referenceDate.getDay() + 6) % 7));
   const days = Array.from({ length: 7 }, (_, index) => {
@@ -130,7 +123,7 @@ export default function AgendaScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Mois suivant" onPress={() => { setMonthOffset((value) => value + 1); setSelectedDayIndex(0); }} style={styles.monthArrow}>
           <SymbolView name="chevron.right" size={16} tintColor={COLORS.text} />
         </Pressable>
-        <Pressable onPress={() => { setMonthOffset(0); setSelectedDayIndex(6); }} style={styles.todayButton}>
+        <Pressable onPress={() => { setMonthOffset(0); setSelectedDayIndex((new Date().getDay() + 6) % 7); }} style={styles.todayButton}>
           <Text style={styles.todayLabel}>Aujourd’hui</Text>
         </Pressable>
       </View>
@@ -219,7 +212,7 @@ function EventCard({ event, onPress }: { event: AgendaEvent; onPress: () => void
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   topBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.border },
   backButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
@@ -227,7 +220,7 @@ const styles = StyleSheet.create({
   monthRow: { minHeight: 55, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 12 },
   monthArrow: { width: 32, height: 36, alignItems: 'center', justifyContent: 'center' },
   monthTitle: { color: COLORS.text, fontSize: 16, fontWeight: '700' },
-  todayButton: { marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: '#006B7612' },
+  todayButton: { marginLeft: 'auto', paddingHorizontal: 10, paddingVertical: 7, borderRadius: 8, backgroundColor: '#0A1F4412' },
   todayLabel: { color: COLORS.primary, fontSize: 12, fontWeight: '700' },
   calendarRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 10, paddingBottom: 12 },
   dayCell: { flex: 1, minWidth: 36, minHeight: 70, alignItems: 'center', justifyContent: 'center', gap: 5, borderRadius: 12 },

@@ -1,3 +1,4 @@
+import { createThemedStyles } from '@/utils/themed-styles';
 import { Image } from 'expo-image';
 import * as SplashScreen from 'expo-splash-screen';
 import { useState } from 'react';
@@ -86,7 +87,7 @@ export function AnimatedIcon() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   imageContainer: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     right: 0,
     top: 0,
     bottom: 0,
-    backgroundColor: '#208AEF',
+    backgroundColor: '#0A1F44',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,

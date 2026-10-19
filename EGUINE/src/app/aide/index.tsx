@@ -1,3 +1,5 @@
+import { useTheme } from '@/hooks/use-theme';
+import { createThemedStyles } from '@/utils/themed-styles';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 import { useRouter } from 'expo-router';
@@ -20,16 +22,17 @@ const FAQ = [
 ];
 
 const COLORS = {
-  background: '#F9FAFB',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
   navy: '#0A1F44',
-  gold: '#D4AF37',
-  text: '#111827',
-  muted: '#6B7280',
-  border: '#E5E7EB',
+  gold: '#7A1F3D',
+  text: '#0A1F44',
+  muted: '#0A1F44',
+  border: '#FFFFFF',
 };
 
 export default function HelpScreen() {
+  useTheme();
   const router = useRouter();
 
   return (
@@ -53,7 +56,7 @@ export default function HelpScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   topBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.border },
   backButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },

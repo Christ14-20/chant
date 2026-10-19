@@ -1,5 +1,7 @@
 export type Langue =
   | 'fr'
+  | 'la'
+  | 'es'
   | 'soussou'
   | 'poular'
   | 'malinke'
@@ -19,6 +21,8 @@ export type Categorie =
   | 'gloria'
   | 'psaume'
   | 'acclamation'
+  | 'credo'
+  | 'priere_universelle'
   | 'offertoire'
   | 'sanctus'
   | 'agnus_dei'
@@ -33,6 +37,7 @@ export type Categorie =
   | 'autre';
 
 export type TempsLiturgique =
+  | 'toute_annee'
   | 'avent'
   | 'noel'
   | 'careme'
@@ -90,17 +95,50 @@ export interface Variante {
   description?: string;
 }
 
+export type TypeRessourceChant = 'audio' | 'image' | 'pdf';
+export type RoleAudioChant = 'original' | 'accompagnement' | 'choeur' | 'voix' | 'autre';
+export type PartieVocale = 'soprano' | 'alto' | 'tenor' | 'basse' | 'voix_principale' | 'personnalisee';
+export type TypeSectionParoles = 'couplet' | 'refrain' | 'pont' | 'intro' | 'outro' | 'autre';
+
+export interface SectionParoles {
+  id: string;
+  type: TypeSectionParoles;
+  titre: string;
+  texte: string;
+}
+
+export interface RessourceChant {
+  id: string;
+  type: TypeRessourceChant;
+  uri: string;
+  nom: string;
+  mime_type?: string;
+  taille_octets?: number;
+  role_audio?: RoleAudioChant;
+  partie_vocale?: PartieVocale | string;
+  description?: string;
+  version?: string;
+  tonalite?: string;
+  created_at: string;
+  availability?: 'importing' | 'available' | 'missing' | 'failed';
+  sync_state?: 'local_only' | 'pending' | 'syncing' | 'synced' | 'failed';
+}
+
 export interface Chant {
   id: string;
   titre: string;
   paroles: string;
+  sections_paroles?: SectionParoles[];
+  accords?: string;
   traduction?: string;
   langue: Langue;
   categorie: Categorie;
+  categories?: Categorie[];
   temps_liturgique?: TempsLiturgique;
   moment_messe?: MomentMesse;
   theme?: Theme;
   tonalite?: string;
+  tempo?: string;
   auteur?: string;
   compositeur?: string;
   niveau_difficulte?: Niveau;
@@ -120,6 +158,8 @@ export interface Chant {
   date_creation?: string;
   tags: Tag[];
   variantes: Variante[];
+  ressources?: RessourceChant[];
+  est_personnel?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -180,7 +220,12 @@ export interface Celebration {
   title: string;
   date: string;
   temps_liturgique: TempsLiturgique;
-  selectedChants: Partial<Record<MomentMesse, string[]>>;
+  selectedChants: Partial<Record<string, string[]>>;
+  customMoments?: { id: string; title: string }[];
+  slotOrder?: string[];
+  created_at?: string;
+  updated_at?: string;
+  status?: 'draft' | 'completed';
 }
 
 export interface Intention {
@@ -257,4 +302,3 @@ export interface Priere {
   publie: boolean;
   created_at: string;
 }
-

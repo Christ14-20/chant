@@ -1,9 +1,10 @@
+import { createThemedStyles } from '@/utils/themed-styles';
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Platform, StyleSheet, TextInput, Animated, Pressable } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { ActionColors, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 interface SearchBarProps {
@@ -24,7 +25,7 @@ export function SearchBar({
   value,
   onChangeText,
   placeholder = 'Rechercher...',
-  placeholderTextColor = '#8E8E93',
+  placeholderTextColor = '#0A1F44',
   autoFocus = false,
   onFocus,
   onBlur,
@@ -76,7 +77,7 @@ export function SearchBar({
 
   const borderColor = focusAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [theme.border, '#208AEF'],
+    outputRange: [theme.border, ActionColors.discovery],
   });
 
   return (
@@ -92,7 +93,7 @@ export function SearchBar({
         testID={testID}
       >
         <ThemedView style={styles.iconContainer}>
-          <SymbolView name="magnifyingglass" size={18} tintColor={isFocused ? '#208AEF' : '#8E8E93'} />
+          <SymbolView name="magnifyingglass" size={18} tintColor={isFocused ? ActionColors.discovery : theme.textSecondary} />
         </ThemedView>
 
         <TextInput
@@ -115,7 +116,7 @@ export function SearchBar({
 
         {localValue.length > 0 && (
           <Pressable onPress={handleClear} hitSlop={8} accessibilityLabel="Effacer la recherche" accessibilityRole="button">
-            <SymbolView name="xmark.circle.fill" size={18} tintColor="#8E8E93" />
+            <SymbolView name="xmark.circle.fill" size={18} tintColor={ActionColors.neutral} />
           </Pressable>
         )}
       </Animated.View>
@@ -129,7 +130,7 @@ export function SearchBar({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   wrapper: { gap: Spacing.two },
   container: {
     flexDirection: 'row',
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.two,
     borderWidth: 2,
   },
-  containerFocused: { borderColor: '#208AEF' },
+  containerFocused: { borderColor: ActionColors.discovery },
   containerDisabled: { opacity: 0.5 },
   iconContainer: { marginRight: Spacing.two },
   input: { flex: 1, fontSize: 16 },

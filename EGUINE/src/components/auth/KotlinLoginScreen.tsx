@@ -1,3 +1,5 @@
+import { useTheme } from '@/hooks/use-theme';
+import { createThemedStyles } from '@/utils/themed-styles';
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -6,10 +8,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppStore } from '@/store/useAppStore';
 import { goBackSafely } from '@/utils/navigation';
 
-const COLORS = { background: '#FFFFFF', card: '#FFFFFF', input: '#FFFFFF', gold: '#D4AF37', goldDark: '#C79B1A', text: '#111827', muted: '#6B7280', border: '#E5E7EB', red: '#EF4444' };
+const COLORS = { background: '#FFFFFF', card: '#FFFFFF', input: '#FFFFFF', gold: '#7A1F3D', goldDark: '#7A1F3D', text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF', red: '#7A1F3D' };
 const EMAIL_REGEX = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 export default function KotlinLoginScreen() {
+  useTheme();
   const router = useRouter();
   const login = useAppStore((state) => state.login);
   const [email, setEmail] = useState('');
@@ -131,17 +134,17 @@ export default function KotlinLoginScreen() {
 function SocialButton({ name, label }: { name: string; label: string }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => {}} style={({ pressed }) => [styles.socialButton, pressed && styles.loginPressed]}>
-      <MaterialCommunityIcons name={name as any} size={22} color={name === 'google' ? '#EA4335' : COLORS.text} />
+      <MaterialCommunityIcons name={name as any} size={22} color={name === 'google' ? '#7A1F3D' : COLORS.text} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   keyboard: { flex: 1 },
   content: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingTop: 24, paddingBottom: 24 },
   brand: { alignItems: 'center' },
-  logoHalo: { width: 110, height: 110, alignItems: 'center', justifyContent: 'center', borderRadius: 55, backgroundColor: '#F59E0B24' },
+  logoHalo: { width: 110, height: 110, alignItems: 'center', justifyContent: 'center', borderRadius: 55, backgroundColor: '#7A1F3D24' },
   logoFrame: { width: 80, height: 80, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.gold, borderRadius: 40, backgroundColor: COLORS.card },
   logo: { width: 52, height: 52 },
   brandName: { marginTop: 16, color: COLORS.gold, fontSize: 14, fontWeight: '700', letterSpacing: 1 },

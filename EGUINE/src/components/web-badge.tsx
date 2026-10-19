@@ -1,3 +1,4 @@
+import { createThemedStyles } from '@/utils/themed-styles';
 import { version } from 'expo/package.json';
 import { Image } from 'expo-image';
 import { useColorScheme, StyleSheet } from 'react-native';
@@ -27,7 +28,7 @@ export function WebBadge() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   container: {
     padding: Spacing.five,
     alignItems: 'center',

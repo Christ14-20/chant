@@ -1,3 +1,4 @@
+import { createThemedStyles } from '@/utils/themed-styles';
 import { SymbolView } from 'expo-symbols';
 import { PropsWithChildren, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
@@ -39,7 +40,7 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   heading: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,67 +1,52 @@
-import { useMemo, useState } from 'react';
+import { useTheme } from '@/hooks/use-theme';
+import { createThemedStyles } from '@/utils/themed-styles';
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackSafely } from '@/utils/navigation';
-import { lectures, saints } from '@/data/mockData';
-import { useAppStore } from '@/store/useAppStore';
+import { useLocalChantSearch } from '@/hooks/use-local-chant-search';
+import { ActionColors } from '@/constants/theme';
 
 const COLORS = {
   background: '#FFFFFF',
   card: '#FFFFFF',
-  gold: '#D4AF37',
-  text: '#111827',
-  muted: '#6B7280',
-  border: '#E5E7EB',
-  blue: '#1877F2',
-  rose: '#D96A8E',
-  violet: '#8E5A9E',
+  gold: '#7A1F3D',
+  text: '#0A1F44',
+  muted: '#0A1F44',
+  border: '#FFFFFF',
+  blue: '#0A1F44',
+  rose: '#7A1F3D',
+  violet: '#7A1F3D',
 };
 
-const FILTERS = ['Tout', 'Chants', 'Prières', 'Saints', 'Lectures'] as const;
+const FILTERS = ['Tout', 'Chants'] as const;
 type SearchFilter = (typeof FILTERS)[number];
 
-const POPULAR_SEARCHES = [
-  { title: 'Je louerai ton nom', icon: 'music-note', color: '#3B82F6' },
-  { title: 'Peuple de baptisés', icon: 'church', color: COLORS.gold },
-  { title: 'Prière du matin', icon: 'hands-pray', color: COLORS.rose },
-  { title: 'Adoration', icon: 'book-open-page-variant', color: '#10B981' },
-];
-
 export default function SearchScreen() {
+  useTheme();
   const router = useRouter();
-  const chants = useAppStore((state) => state.chants);
-  const prieres = useAppStore((state) => state.prieres);
   const [query, setQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<SearchFilter>('Tout');
-  const [recentSearches, setRecentSearches] = useState(['Veni Creator', 'Ave Maria', 'Psaume 23', 'Chapelet']);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   const normalizedQuery = query.trim().toLocaleLowerCase();
-  const allResults = useMemo(() => {
-    if (!normalizedQuery) return { chants: [], prieres: [], saints: [], lectures: [] };
-    const matches = (value?: string) => value?.toLocaleLowerCase().includes(normalizedQuery) ?? false;
-    return {
-      chants: chants.filter((item) => matches(item.titre)),
-      prieres: prieres.filter((item) => matches(item.titre)),
-      saints: saints.filter((item) => matches(item.nom)),
-      lectures: lectures.filter((item) => matches(item.reference) || matches(item.evangile)),
-    };
-  }, [chants, lectures, normalizedQuery, prieres]);
+  const {
+    items: chantResults,
+    total: chantTotal,
+    loading: chantsLoading,
+    loadingMore,
+    hasMore,
+    loadMore,
+    error: chantSearchError,
+  } = useLocalChantSearch({ query: normalizedQuery, enabled: normalizedQuery.length > 0 }, 180);
 
-  const results = selectedFilter === 'Tout' ? allResults : {
-    chants: selectedFilter === 'Chants' ? allResults.chants : [],
-    prieres: selectedFilter === 'Prières' ? allResults.prieres : [],
-    saints: selectedFilter === 'Saints' ? allResults.saints : [],
-    lectures: selectedFilter === 'Lectures' ? allResults.lectures : [],
-  };
-  const totalResults = results.chants.length + results.prieres.length + results.saints.length + results.lectures.length;
+  const visibleChantCount = selectedFilter === 'Tout' || selectedFilter === 'Chants' ? chantTotal : 0;
+  const totalResults = visibleChantCount;
   const filterCounts: Record<SearchFilter, number> = {
-    Tout: allResults.chants.length + allResults.prieres.length + allResults.saints.length + allResults.lectures.length,
-    Chants: allResults.chants.length,
-    Prières: allResults.prieres.length,
-    Saints: allResults.saints.length,
-    Lectures: allResults.lectures.length,
+    Tout: chantTotal,
+    Chants: chantTotal,
   };
 
   const submitSearch = () => {
@@ -81,14 +66,14 @@ export default function SearchScreen() {
           <MaterialCommunityIcons name="arrow-left" size={19} color={COLORS.text} />
         </Pressable>
         <View style={styles.searchField}>
-          <MaterialCommunityIcons name="magnify" size={19} color={COLORS.muted} />
+          <MaterialCommunityIcons name="magnify" size={19} color={ActionColors.discovery} />
           <TextInput
             accessibilityLabel="Rechercher dans l’application"
             autoFocus
             autoCapitalize="none"
             onChangeText={setQuery}
             onSubmitEditing={submitSearch}
-            placeholder="Chants, prières, saints…"
+            placeholder="Rechercher un chant…"
             placeholderTextColor={COLORS.muted}
             returnKeyType="search"
             style={styles.input}
@@ -148,24 +133,19 @@ export default function SearchScreen() {
                 </ScrollView>
               </View>
             )}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Recherches populaires</Text>
-              <View style={styles.popularGrid}>
-                {POPULAR_SEARCHES.map((item) => (
-                  <Pressable key={item.title} onPress={() => openSearch(item.title)} style={styles.popularCard}>
-                    <View style={[styles.popularIcon, { backgroundColor: `${item.color}20` }]}>
-                      <MaterialCommunityIcons name={item.icon as any} size={17} color={item.color} />
-                    </View>
-                    <Text numberOfLines={1} style={styles.rowTitle}>{item.title}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
           </>
+        ) : chantSearchError ? (
+          <View style={styles.emptyState}>
+            <Text accessibilityRole="alert" style={styles.emptySubtitle}>{chantSearchError}</Text>
+          </View>
+        ) : totalResults === 0 && chantsLoading ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptySubtitle}>Recherche dans la bibliothèque locale…</Text>
+          </View>
         ) : totalResults === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIcon}>
-              <MaterialCommunityIcons name="magnify" size={28} color={COLORS.muted} />
+              <MaterialCommunityIcons name="magnify" size={28} color={ActionColors.discovery} />
             </View>
             <Text style={styles.emptyTitle}>Aucun résultat</Text>
             <Text style={styles.emptySubtitle}>Aucun contenu ne correspond à « {query.trim()} ».</Text>
@@ -175,9 +155,9 @@ export default function SearchScreen() {
             <Text style={styles.resultSummary}>
               {totalResults} résultat{totalResults > 1 ? 's' : ''} pour « {query.trim()} »
             </Text>
-            {results.chants.length > 0 && (
-              <ResultSection title={`Chants (${results.chants.length})`}>
-                {results.chants.map((chant) => (
+            {visibleChantCount > 0 && (
+              <ResultSection title={`Chants (${chantTotal})`}>
+                {chantResults.map((chant) => (
                   <ResultRow
                     key={chant.id}
                     icon="music-note"
@@ -187,48 +167,11 @@ export default function SearchScreen() {
                     onPress={() => router.push(`/chant/${chant.id}`)}
                   />
                 ))}
-              </ResultSection>
-            )}
-            {results.prieres.length > 0 && (
-              <ResultSection title={`Prières (${results.prieres.length})`}>
-                {results.prieres.map((priere) => (
-                  <ResultRow
-                    key={priere.id}
-                    icon="hands-pray"
-                    iconColor={COLORS.rose}
-                    title={priere.titre}
-                    subtitle={`${priere.langue.toUpperCase()} · ${priere.categorie}`}
-                    onPress={() => router.push(`/priere/${priere.id}`)}
-                  />
-                ))}
-              </ResultSection>
-            )}
-            {results.saints.length > 0 && (
-              <ResultSection title={`Saints (${results.saints.length})`}>
-                {results.saints.map((saint) => (
-                  <ResultRow
-                    key={saint.id}
-                    icon="account-outline"
-                    iconColor={COLORS.gold}
-                    title={saint.nom}
-                    subtitle={saint.pays ?? 'Saint du calendrier liturgique'}
-                    onPress={() => router.push(`/saint/${saint.id}`)}
-                  />
-                ))}
-              </ResultSection>
-            )}
-            {results.lectures.length > 0 && (
-              <ResultSection title={`Lectures (${results.lectures.length})`}>
-                {results.lectures.map((lecture) => (
-                  <ResultRow
-                    key={lecture.id}
-                    icon="book-open-page-variant"
-                    iconColor={COLORS.violet}
-                    title={lecture.reference ?? 'Lecture du jour'}
-                    subtitle={lecture.evangile.slice(0, 100)}
-                    onPress={() => router.push('/lecture')}
-                  />
-                ))}
+                {hasMore && (
+                  <Pressable accessibilityRole="button" onPress={() => { void loadMore(); }} style={styles.loadMore}>
+                    <Text style={styles.clearLabel}>{loadingMore ? 'Chargement…' : 'Charger plus de chants'}</Text>
+                  </Pressable>
+                )}
               </ResultSection>
             )}
           </>
@@ -274,7 +217,7 @@ function ResultRow({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 10 },
   backButton: { width: 36, height: 44, alignItems: 'center', justifyContent: 'center' },
@@ -282,7 +225,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, minHeight: 44, color: COLORS.text, fontSize: 15 },
   filters: { gap: 8, paddingHorizontal: 14, paddingBottom: 8 },
   filterChip: { minHeight: 34, justifyContent: 'center', paddingHorizontal: 14, borderWidth: 1, borderColor: COLORS.border, borderRadius: 18, backgroundColor: COLORS.card },
-  filterChipActive: { borderColor: COLORS.blue, backgroundColor: '#1877F220' },
+  filterChipActive: { borderColor: COLORS.blue, backgroundColor: '#0A1F4420' },
   filterLabel: { color: COLORS.muted, fontSize: 13, fontWeight: '600' },
   filterLabelActive: { color: COLORS.text },
   filterCount: { color: COLORS.muted, fontSize: 10, fontWeight: '700' },
@@ -303,6 +246,7 @@ const styles = StyleSheet.create({
   popularIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 8 },
   resultSummary: { color: COLORS.muted, fontSize: 13 },
   resultList: { gap: 6 },
+  loadMore: { alignItems: 'center', paddingVertical: 14 },
   resultRow: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, backgroundColor: COLORS.card },
   resultIcon: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 11 },
   resultCopy: { flex: 1, gap: 4 },

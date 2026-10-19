@@ -1,61 +1,35 @@
-import { Platform, Pressable, StyleSheet, Animated } from 'react-native';
+import { createThemedStyles } from '@/utils/themed-styles';
+import { Platform, Pressable, StyleSheet, Animated, View } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 import { router } from 'expo-router';
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { ActionColors, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { Chant } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
 
 // ============ CONSTANTES ============
 const CATEGORIE_LABELS: Record<string, string> = {
-  entree: 'Entrée',
-  kyrie: 'Kyrie',
-  gloria: 'Gloria',
-  psaume: 'Psaume',
-  acclamation: 'Acclamation',
-  offertoire: 'Offertoire',
-  sanctus: 'Sanctus',
-  agnus_dei: 'Agnus Dei',
-  communion: 'Communion',
-  action_grace: 'Action de grâce',
-  chant_final: 'Chant final',
-  louange: 'Louange',
-  adoration: 'Adoration',
-  penitence: 'Pénitence',
-  marial: 'Marial',
-  funerailles: 'Funérailles',
-  autre: 'Autre',
+  entree: 'Entrée', kyrie: 'Kyrie', gloria: 'Gloria', psaume: 'Psaume',
+  acclamation: 'Acclamation', offertoire: 'Offertoire', sanctus: 'Sanctus',
+  agnus_dei: 'Agnus Dei', communion: 'Communion', action_grace: 'Action de grâce',
+  chant_final: 'Chant final', louange: 'Louange', adoration: 'Adoration',
+  penitence: 'Pénitence', marial: 'Marial', funerailles: 'Funérailles', autre: 'Autre',
 };
 
 const CATEGORIE_COLORS: Record<string, string> = {
-  entree: '#34C759',
-  kyrie: '#FF9500',
-  gloria: '#FFCC00',
-  psaume: '#5856D6',
-  acclamation: '#AF52DE',
-  offertoire: '#FF2D55',
-  sanctus: '#FF3B30',
-  agnus_dei: '#FF6B6B',
-  communion: '#208AEF',
-  action_grace: '#34C759',
-  chant_final: '#FF9500',
-  louange: '#FFD700',
-  adoration: '#AF52DE',
-  penitence: '#8E8E93',
-  marial: '#E91E63',
-  funerailles: '#4A4A4A',
-  autre: '#8E8E93',
+  entree: '#7A1F3D', kyrie: '#7A1F3D', gloria: '#7A1F3D', psaume: '#0A1F44',
+  acclamation: '#7A1F3D', offertoire: '#7A1F3D', sanctus: '#7A1F3D',
+  agnus_dei: '#7A1F3D', communion: '#0A1F44', action_grace: '#7A1F3D',
+  chant_final: '#7A1F3D', louange: '#7A1F3D', adoration: '#7A1F3D',
+  penitence: '#0A1F44', marial: '#7A1F3D', funerailles: '#0A1F44', autre: '#0A1F44',
 };
 
-const LANG_FLAGS: Record<string, string> = {
-  fr: '🇫🇷',
-  soussou: '🇬🇳',
-  poular: '🇬🇳',
-  malinke: '🇬🇳',
+const LANG_LABELS: Record<string, string> = {
+  fr: 'Français', la: 'Latin', es: 'Espagnol', soussou: 'Soussou', poular: 'Poular', malinke: 'Malinké',
 };
 
 // ============ COMPOSANT ============
@@ -70,378 +44,409 @@ interface ChantCardProps {
 }
 
 export function ChantCard({
-  chant, onPress, onFavoritePress, isFavorite: externalIsFavorite, style, variant = 'default', showPlayButton = false,
+  chant, onPress, onFavoritePress, isFavorite: externalIsFavorite,
+  style, variant = 'default', showPlayButton = false,
 }: ChantCardProps) {
   const theme = useTheme();
   const toggleFavorite = useAppStore((s) => s.toggleFavorite);
   const internalIsFavorite = useAppStore((s) => s.isFavorite(chant.id));
   const isFav = externalIsFavorite !== undefined ? externalIsFavorite : internalIsFavorite;
 
-  // État local
   const [isPressed, setIsPressed] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(8)).current;
+  const heartScale = useRef(new Animated.Value(1)).current;
 
-  // Callbacks
+  // Animation d'entrée
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+      Animated.spring(translateY, { toValue: 0, speed: 14, bounciness: 4, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
   const handlePressIn = useCallback(() => {
     setIsPressed(true);
-    Animated.spring(scaleAnim, {
-      toValue: 0.97,
-      useNativeDriver: true,
-      speed: 50,
-    }).start();
+    Animated.spring(scaleAnim, { toValue: 0.975, useNativeDriver: true, speed: 50 }).start();
   }, [scaleAnim]);
 
   const handlePressOut = useCallback(() => {
     setIsPressed(false);
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-    }).start();
+    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
   }, [scaleAnim]);
 
   const handleFavoritePress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (onFavoritePress) {
-      onFavoritePress(chant.id);
-    } else {
-      toggleFavorite(chant.id);
-    }
-  }, [chant.id, onFavoritePress, toggleFavorite]);
+    Animated.sequence([
+      Animated.spring(heartScale, { toValue: 1.35, useNativeDriver: true, speed: 60 }),
+      Animated.spring(heartScale, { toValue: 1, useNativeDriver: true, speed: 20 }),
+    ]).start();
+    if (onFavoritePress) onFavoritePress(chant.id);
+    else toggleFavorite(chant.id);
+  }, [chant.id, onFavoritePress, toggleFavorite, heartScale]);
 
   const handlePress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (onPress) {
-      onPress();
-    } else {
-      router.push(`/chant/${chant.id}`);
-    }
+    if (onPress) onPress();
+    else router.push(`/chant/${chant.id}`);
   }, [chant.id, onPress]);
 
-  // Rendu
   const categorieLabel = CATEGORIE_LABELS[chant.categorie] || chant.categorie;
-  const categorieColor = CATEGORIE_COLORS[chant.categorie] || '#8E8E93';
-  const langFlag = LANG_FLAGS[chant.langue] || '🌍';
+  const categorieColor = CATEGORIE_COLORS[chant.categorie] || '#0A1F44';
+  const langLabel = LANG_LABELS[chant.langue] || chant.langue;
   const isCompact = variant === 'compact';
   const isFeatured = variant === 'featured';
 
+  const isDark = theme.background === '#0A1F44';
+  const cardBg = isDark ? '#000000' : '#FFFFFF';
+  const cardPressedBg = isDark ? '#000000' : '#FFFFFF';
+  const mutedColor = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(10,31,68,0.55)';
+
   return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
+    <Animated.View
+      style={[
+        { opacity: fadeAnim, transform: [{ translateY }, { scale: scaleAnim }] },
+        style,
+      ]}
+    >
       <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={({ pressed }) => [
+        style={[
           styles.card,
-          {
-            backgroundColor: '#FFFFFF', // 👈 Fond blanc
-            borderColor: theme.border,
-            borderWidth: StyleSheet.hairlineWidth,
-          },
           isCompact && styles.cardCompact,
-          isFeatured && { borderColor: 'rgba(32,138,239,0.25)', borderWidth: 1 },
-          pressed && Platform.OS !== 'web' && { backgroundColor: '#F2F2F7' }, // 👈 gris clair au press
+          isFeatured && styles.cardFeatured,
+          {
+            backgroundColor: isPressed && Platform.OS !== 'web' ? cardPressedBg : cardBg,
+            shadowColor: isDark ? '#000000' : '#0A1F44',
+          },
         ]}
         accessibilityRole="button"
         accessibilityLabel={`Chant: ${chant.titre}`}
       >
-        <ThemedView style={[styles.cardContent, isFeatured && styles.cardContentFeatured, { backgroundColor: 'transparent' }]}>
-          {/* Badge catégorie */}
-          <ThemedView style={[styles.categoryBadge, { backgroundColor: `${categorieColor}20` }]}>
-            <ThemedView style={[styles.categoryDot, { backgroundColor: categorieColor }]} />
-            <ThemedText style={[styles.categoryText, { color: categorieColor }]}>
-              {categorieLabel}
-            </ThemedText>
-          </ThemedView>
+        {/* Ligne d'accent colorée à gauche (signature visuelle) */}
+        <View style={[styles.accentBar, { backgroundColor: categorieColor }]} />
 
-          {/* En-tête */}
-          <ThemedView style={styles.header}>
-            <ThemedView style={styles.titleContainer}>
-              <ThemedText type="default" style={[styles.title, isFeatured && styles.titleFeatured]}>
-                {chant.titre}
+        <View style={[styles.cardContent, isFeatured && styles.cardContentFeatured]}>
+          {/* ── HEADER : badge catégorie + langue + favori ── */}
+          <View style={styles.header}>
+            <View style={[styles.categoryPill, { backgroundColor: `${categorieColor}1A` }]}>
+              <View style={[styles.categoryDot, { backgroundColor: categorieColor }]} />
+              <ThemedText style={[styles.categoryText, { color: categorieColor }]}>
+                {categorieLabel}
               </ThemedText>
-              {chant.tonalite && (
-                <ThemedView style={styles.tonaliteBadge}>
-                  <ThemedText style={styles.tonaliteText}>{chant.tonalite}</ThemedText>
-                </ThemedView>
-              )}
-            </ThemedView>
+            </View>
 
-            <ThemedView style={styles.headerActions}>
-              {showPlayButton && (
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.playButton,
-                    pressed && styles.playButtonPressed,
-                  ]}
-                  onPress={handlePress}
-                  accessibilityLabel="Écouter le chant"
-                >
-                  <SymbolView name="play.circle.fill" size={28} tintColor="#208AEF" />
-                </Pressable>
-              )}
+            <View style={styles.headerActions}>
+              {/* Badge langue pill */}
+              <View style={[styles.langPill, { backgroundColor: isDark ? 'rgba(10,31,68,0.24)' : 'rgba(10,31,68,0.12)' }]}>
+                {!isCompact && (
+                  <ThemedText style={[styles.langText, { color: mutedColor }]} numberOfLines={1}>
+                    {langLabel}
+                  </ThemedText>
+                )}
+              </View>
+
+              {/* Bouton favori avec animation */}
               <Pressable
                 onPress={handleFavoritePress}
-                hitSlop={12}
-                style={({ pressed }) => [
-                  styles.favoriteButton,
-                  pressed && styles.favoriteButtonPressed,
-                ]}
+                hitSlop={10}
+                style={styles.favoriteButton}
                 accessibilityLabel={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                accessibilityRole="button"
-                accessibilityState={{ selected: isFav }}
               >
-                <SymbolView
-                  name={isFav ? 'heart.fill' : 'heart'}
-                  tintColor={isFav ? '#E91E63' : '#8E8E93'}
-                  size={isCompact ? 18 : 22}
-                />
+                <Animated.View style={{ transform: [{ scale: heartScale }] }}>
+                  <SymbolView
+                    name={isFav ? 'heart.fill' : 'heart'}
+                    tintColor={isFav ? ActionColors.primary : mutedColor}
+                    size={isCompact ? 18 : 20}
+                  />
+                </Animated.View>
               </Pressable>
-            </ThemedView>
-          </ThemedView>
+            </View>
+          </View>
 
-          {/* Métadonnées */}
-          <ThemedView style={styles.metaContainer}>
-            <ThemedView style={styles.metaItem}>
-              <ThemedText style={styles.metaText}>
-                {langFlag} {chant.langue === 'fr' ? 'Français' : chant.langue}
+          {/* ── TITRE + AUTEUR ── */}
+          <View style={styles.titleBlock}>
+            <ThemedText
+              style={[styles.title, isFeatured && styles.titleFeatured]}
+              numberOfLines={2}
+            >
+              {chant.titre}
+            </ThemedText>
+            {chant.auteur && (
+              <ThemedText style={[styles.auteur, { color: mutedColor }]} numberOfLines={1}>
+                {chant.auteur}
               </ThemedText>
-            </ThemedView>
+            )}
+          </View>
+
+          {/* ── EXTRAIT PAROLES (featured) ── */}
+          {isFeatured && chant.paroles && (
+            <ThemedText style={[styles.parolesExtrait, { color: mutedColor }]} numberOfLines={2}>
+              “{chant.paroles.slice(0, 110).trim()}…”
+            </ThemedText>
+          )}
+
+          {/* ── DIVIDER ── */}
+          <View style={[styles.divider, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]} />
+
+          {/* ── META INFOS INLINE ── */}
+          <View style={styles.metaRow}>
+            {chant.tonalite && (
+              <MetaItem icon="music.note" label={chant.tonalite} color={mutedColor} />
+            )}
             {chant.temps_liturgique && (
-              <ThemedView style={styles.metaItem}>
-                <SymbolView name="calendar" size={12} tintColor="#8E8E93" />
-                <ThemedText style={styles.metaText}>
-                  {chant.temps_liturgique.replace('_', ' ')}
-                </ThemedText>
-              </ThemedView>
+              <MetaItem
+                icon="calendar"
+                label={chant.temps_liturgique.replace('_', ' ')}
+                color={mutedColor}
+              />
             )}
             {chant.vues !== undefined && (
-              <ThemedView style={styles.metaItem}>
-                <SymbolView name="eye" size={12} tintColor="#8E8E93" />
-                <ThemedText style={styles.metaText}>
-                  {chant.vues} vues
-                </ThemedText>
-              </ThemedView>
+              <MetaItem icon="eye" label={`${chant.vues}`} color={mutedColor} />
             )}
-          </ThemedView>
+            {chant.downloaded && (
+              <View style={styles.downloadDot}>
+                <SymbolView name="checkmark.circle.fill" size={12} tintColor={ActionColors.success} />
+                <ThemedText style={[styles.downloadText, { color: '#7A1F3D' }]}>
+                  Hors-ligne
+                </ThemedText>
+              </View>
+            )}
+          </View>
 
-          {/* Auteur */}
-          {chant.auteur && (
-            <ThemedText style={styles.auteur}>
-              ✍️ {chant.auteur}
-            </ThemedText>
-          )}
-
-          {/* Tags */}
+          {/* ── TAGS ── */}
           {chant.tags && chant.tags.length > 0 && (
-            <ThemedView style={styles.tags}>
-              {chant.tags.slice(0, isCompact ? 2 : 4).map((tag) => (
-                <ThemedView key={tag.id} style={[styles.tag, { backgroundColor: `${theme.backgroundSelected}` }]}>
-                  <ThemedText type="small" style={[styles.tagText, { color: '#208AEF' }]}>
-                    #{tag.nom}
-                  </ThemedText>
-                </ThemedView>
+            <View style={styles.tags}>
+              {chant.tags.slice(0, isCompact ? 2 : 3).map((tag) => (
+                <View
+                  key={tag.id}
+                  style={[
+                    styles.tag,
+                    { backgroundColor: isDark ? 'rgba(10,31,68,0.15)' : 'rgba(10,31,68,0.08)' },
+                  ]}
+                >
+                  <ThemedText style={styles.tagText}>#{tag.nom}</ThemedText>
+                </View>
               ))}
-              {chant.tags.length > (isCompact ? 2 : 4) && (
-                <ThemedView style={[styles.tagMore, { backgroundColor: theme.backgroundSelected }]}>
-                  <ThemedText type="small" style={styles.tagMoreText}>
-                    +{chant.tags.length - (isCompact ? 2 : 4)}
+              {chant.tags.length > (isCompact ? 2 : 3) && (
+                <View style={[styles.tag, { backgroundColor: isDark ? 'rgba(10,31,68,0.2)' : 'rgba(10,31,68,0.1)' }]}>
+                  <ThemedText style={[styles.tagText, { color: mutedColor }]}>
+                    +{chant.tags.length - (isCompact ? 2 : 3)}
                   </ThemedText>
-                </ThemedView>
+                </View>
               )}
-            </ThemedView>
+            </View>
           )}
 
-          {/* Extrait des paroles (pour la version featured) */}
-          {isFeatured && chant.paroles && (
-            <ThemedText style={styles.parolesExtrait} numberOfLines={2}>
-              {chant.paroles.slice(0, 120)}...
-            </ThemedText>
+          {/* ── CTA PLAY (optionnel) ── */}
+          {showPlayButton && (
+            <Pressable
+              onPress={handlePress}
+              style={({ pressed }) => [
+                styles.playCTA,
+                { backgroundColor: ActionColors.playback },
+                pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
+              ]}
+            >
+              <SymbolView name="play.fill" size={14} tintColor="#FFFFFF" />
+              <ThemedText style={styles.playCTAText}>Écouter</ThemedText>
+            </Pressable>
           )}
-
-          {/* Indicateur de téléchargement */}
-          {chant.downloaded && (
-            <ThemedView style={styles.downloadBadge}>
-              <SymbolView name="checkmark.circle.fill" size={14} tintColor="#34C759" />
-              <ThemedText style={styles.downloadBadgeText}>Téléchargé</ThemedText>
-            </ThemedView>
-          )}
-        </ThemedView>
+        </View>
       </Pressable>
     </Animated.View>
   );
 }
 
+// ── Petits composants utilitaires ──
+function MetaItem({ icon, label, color }: { icon: string; label: string; color: string }) {
+  return (
+    <View style={styles.metaItem}>
+      <SymbolView name={icon as any} size={12} tintColor={color} />
+      <ThemedText style={[styles.metaText, { color }]} numberOfLines={1}>
+        {label}
+      </ThemedText>
+    </View>
+  );
+}
+
 // ============ STYLES ============
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   card: {
     marginHorizontal: Spacing.four,
     marginVertical: Spacing.two,
-    borderRadius: Spacing.three,
+    borderRadius: 18,
     overflow: 'hidden',
-    // Ombre légère pour faire ressortir le fond blanc
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    flexDirection: 'row',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(10,31,68,0.12)',
   },
   cardCompact: {
     marginHorizontal: Spacing.two,
     marginVertical: Spacing.one,
+    borderRadius: 14,
   },
   cardFeatured: {
     marginHorizontal: Spacing.four,
     marginVertical: Spacing.three,
-    borderRadius: Spacing.four,
+    borderRadius: 22,
   },
-  pressed: {
-    opacity: 0.7,
+  accentBar: {
+    width: 4,
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
   },
   cardContent: {
-    padding: Spacing.four,
+    flex: 1,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.three,
     gap: Spacing.two,
-    borderRadius: Spacing.three,
   },
   cardContentFeatured: {
-    padding: Spacing.five,
+    paddingVertical: Spacing.four,
+    paddingHorizontal: Spacing.four,
+    gap: Spacing.three,
   },
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-    alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: Spacing.one,
-  },
-  categoryDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  categoryText: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'capitalize',
-  },
+
+  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Spacing.two,
   },
-  titleContainer: {
-    flex: 1,
+  categoryPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: Spacing.one,
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    flexShrink: 1,
-  },
-  titleFeatured: {
-    fontSize: 20,
+  categoryDot: { width: 6, height: 6, borderRadius: 3 },
+  categoryText: {
+    fontSize: 11,
     fontWeight: '700',
-  },
-  tonaliteBadge: {
-    paddingHorizontal: Spacing.one,
-    paddingVertical: Spacing.half,
-    borderRadius: Spacing.half,
-  },
-  tonaliteText: {
-    fontSize: 10,
-    opacity: 0.5,
-    fontWeight: '600',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.one,
+    gap: Spacing.two,
   },
-  playButton: {
-    padding: Spacing.one,
+  langPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+    maxWidth: 110,
   },
-  playButtonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.9 }],
+  langText: { fontSize: 11, fontWeight: '500' },
+  favoriteButton: { padding: 4 },
+
+  // Titre
+  titleBlock: { gap: 2 },
+  title: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    lineHeight: 22,
   },
-  favoriteButton: {
-    padding: Spacing.one,
+  titleFeatured: {
+    fontSize: 22,
+    lineHeight: 28,
+    letterSpacing: -0.5,
   },
-  favoriteButtonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.9 }],
+  auteur: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    fontWeight: '400',
   },
-  metaContainer: {
+
+  // Extrait
+  parolesExtrait: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontStyle: 'italic',
+  },
+
+  // Divider
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 2,
+  },
+
+  // Meta
+  metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.two,
+    alignItems: 'center',
+    gap: Spacing.three,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
   },
   metaText: {
     fontSize: 12,
-    opacity: 0.5,
+    fontWeight: '500',
     textTransform: 'capitalize',
   },
-  auteur: {
-    fontSize: 12,
-    opacity: 0.5,
-    fontStyle: 'italic',
+  downloadDot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
+  downloadText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+
+  // Tags
   tags: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.one,
-    marginTop: Spacing.half,
+    gap: 6,
   },
   tag: {
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: Spacing.one,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   tagText: {
     fontSize: 11,
-    color: '#208AEF',
-    textTransform: 'capitalize',
+    color: '#0A1F44',
+    fontWeight: '600',
+    textTransform: 'lowercase',
   },
-  tagMore: {
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: Spacing.one,
-  },
-  tagMoreText: {
-    fontSize: 11,
-    opacity: 0.5,
-  },
-  parolesExtrait: {
-    fontSize: 14,
-    opacity: 0.6,
-    lineHeight: 20,
-    fontStyle: 'italic',
-    paddingTop: Spacing.one,
-    borderTopWidth: StyleSheet.hairlineWidth,
-  },
-  downloadBadge: {
+
+  // CTA play
+  playCTA: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.one,
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.two,
-    paddingVertical: Spacing.half,
-    borderRadius: Spacing.one,
-    backgroundColor: 'rgba(52,199,89,0.1)',
+    marginTop: 4,
   },
-  downloadBadgeText: {
-    fontSize: 11,
-    color: '#34C759',
-    fontWeight: '500',
+  playCTAText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });

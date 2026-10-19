@@ -1,3 +1,5 @@
+import { useTheme } from '@/hooks/use-theme';
+import { createThemedStyles } from '@/utils/themed-styles';
 import { useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,20 +9,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackSafely } from '@/utils/navigation';
 import { useAppStore } from '@/store/useAppStore';
 
-const COLORS = { background: '#0A1F44', card: '#16233A', divider: '#243450', gold: '#D4AF37', text: '#FFFFFF', secondary: '#9CA8BD', tertiary: '#6B7689', red: '#E53935' };
+const COLORS = { background: '#0A1F44', card: '#0A1F44', divider: '#0A1F44', gold: '#7A1F3D', text: '#FFFFFF', secondary: '#0A1F44', tertiary: '#0A1F44', red: '#7A1F3D' };
 
-const COMMUNITY_ITEMS = [
-  { icon: 'church', color: COLORS.gold, title: 'Ma paroisse', subtitle: 'Sainte Marie — Conakry' },
-  { icon: 'earth', color: '#8B5CF6', title: 'Mon diocèse', subtitle: 'Archidiocèse de Conakry' },
-];
 const CONTENT_ITEMS = [
-  { icon: 'heart-outline', color: '#D96A8E', title: 'Mes favoris', subtitle: 'Vos chants et prières sauvegardés', route: '/favoris' as const },
-  { icon: 'history', color: '#3498DB', title: 'Mon historique', subtitle: 'Consultés récemment' },
-  { icon: 'format-list-bulleted', color: COLORS.gold, title: 'Mes intentions de prière', subtitle: '3 en cours', badge: '3' },
-  { icon: 'cloud-upload-outline', color: '#27AE60', title: 'Mes contributions', subtitle: '7 chants proposés' },
+  { icon: 'heart-outline', color: '#7A1F3D', title: 'Mes favoris', subtitle: 'Vos chants et prières sauvegardés', route: '/favoris' as const },
+  { icon: 'history', color: '#0A1F44', title: 'Mon historique', subtitle: 'Chants et préparations de Messe', route: '/historique' as const },
 ];
+const ROLE_LABELS = { fidelle: 'Fidèle', choriste: 'Choriste', paroisse: 'Paroisse', admin: 'Administrateur' } as const;
 
 export default function ProfileScreen() {
+  useTheme();
   const router = useRouter();
   const user = useAppStore((state) => state.user);
   const chants = useAppStore((state) => state.chants);
@@ -31,20 +29,20 @@ export default function ProfileScreen() {
   const [logoutVisible, setLogoutVisible] = useState(false);
 
   const totalFavorites = favorites.length + favoritePrieres.length;
-  const displayName = user?.name || 'Blaise Pascal Kpoghomou';
+  const displayName = user?.name || 'Mon profil';
   const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toLocaleUpperCase();
+  const accountLabel = user ? ROLE_LABELS[user.role] : 'Visiteur';
 
   const sections = [
-    { title: 'MA COMMUNAUTÉ', items: COMMUNITY_ITEMS },
     { title: 'MON CONTENU', items: CONTENT_ITEMS },
     { title: 'PRÉFÉRENCES', items: [
       { icon: 'lock-outline', color: COLORS.gold, title: 'Se connecter / Authentification', subtitle: 'Accéder à votre compte choriste', route: '/connexion' as const },
       { icon: 'bell-outline', color: COLORS.gold, title: 'Notifications', subtitle: 'Rappels, nouveautés', route: '/notifications' as const },
-      { icon: 'cog-outline', color: '#6B7689', title: 'Paramètres', subtitle: 'Compte, confidentialité', route: '/parametres' as const },
+      { icon: 'cog-outline', color: '#0A1F44', title: 'Paramètres', subtitle: 'Compte, confidentialité', route: '/parametres' as const },
     ] },
     { title: 'SUPPORT', items: [
-      { icon: 'help-circle-outline', color: '#1877F2', title: 'Aide & FAQ', subtitle: 'Questions fréquentes', route: '/aide' as const },
-      { icon: 'information-outline', color: '#6B7689', title: 'À propos', subtitle: 'eGuine v1.2.0' },
+      { icon: 'help-circle-outline', color: '#0A1F44', title: 'Aide & FAQ', subtitle: 'Questions fréquentes', route: '/aide' as const },
+      { icon: 'information-outline', color: '#0A1F44', title: 'À propos', subtitle: 'eGuine v1.2.0' },
     ] },
   ];
 
@@ -71,16 +69,16 @@ export default function ProfileScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.profileCard}>
-          <LinearGradient colors={['#1B263B', '#2A3A5C', '#3E5A9A']} style={styles.cover}>
+          <LinearGradient colors={['#0A1F44', '#0A1F44', '#0A1F44']} style={styles.cover}>
             <View style={styles.roleBadge}>
               <MaterialCommunityIcons name="music-note" size={13} color={COLORS.background} />
-              <Text style={styles.roleBadgeLabel}>CHORISTE</Text>
+              <Text style={styles.roleBadgeLabel}>{accountLabel.toLocaleUpperCase()}</Text>
             </View>
           </LinearGradient>
           <View style={styles.profileDetails}>
             <View style={styles.profileActionsRow}>
               <View style={styles.avatarWrap}>
-                {user?.profileImage ? <Image source={{ uri: user.profileImage }} style={styles.avatarImage} /> : <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.avatar}><Text style={styles.avatarInitials}>{initials}</Text></LinearGradient>}
+                {user?.profileImage ? <Image source={{ uri: user.profileImage }} style={styles.avatarImage} /> : <LinearGradient colors={['#0A1F44', '#0A1F44']} style={styles.avatar}><Text style={styles.avatarInitials}>{initials}</Text></LinearGradient>}
               </View>
               <Pressable accessibilityRole="button" onPress={() => {}} style={styles.editButton}>
                 <MaterialCommunityIcons name="pencil-outline" size={15} color={COLORS.text} />
@@ -90,11 +88,7 @@ export default function ProfileScreen() {
             <Text numberOfLines={1} style={styles.profileName}>{displayName}</Text>
             <View style={styles.metaRow}>
               <MaterialCommunityIcons name="star" size={14} color={COLORS.gold} />
-              <Text style={styles.profileMeta}>Choriste · Membre actif · Membre depuis 2 ans</Text>
-            </View>
-            <View style={styles.metaRow}>
-              <MaterialCommunityIcons name="church" size={14} color={COLORS.tertiary} />
-              <Text numberOfLines={1} style={styles.parishMeta}>Paroisse Sainte Marie · Conakry</Text>
+              <Text style={styles.profileMeta}>{accountLabel}</Text>
             </View>
           </View>
         </View>
@@ -124,11 +118,13 @@ export default function ProfileScreen() {
           </View>
         ))}
 
-        <Pressable accessibilityRole="button" onPress={() => setLogoutVisible(true)} style={styles.logoutButton}>
-          <MaterialCommunityIcons name="logout" size={20} color={COLORS.red} />
-          <Text style={styles.logoutLabel}>Se déconnecter</Text>
-        </Pressable>
-        <Text style={styles.footer}>eGuine · v1.2.0 · Made with ❤️ à Conakry</Text>
+        {user && (
+          <Pressable accessibilityRole="button" onPress={() => setLogoutVisible(true)} style={styles.logoutButton}>
+            <MaterialCommunityIcons name="logout" size={20} color={COLORS.red} />
+            <Text style={styles.logoutLabel}>Se déconnecter</Text>
+          </Pressable>
+        )}
+        <Text style={styles.footer}>eGuine</Text>
       </ScrollView>
 
       <Modal visible={logoutVisible} transparent animationType="fade" onRequestClose={() => setLogoutVisible(false)}>
@@ -164,7 +160,7 @@ function MenuItem({ icon, color, title, subtitle, badge, onPress }: { icon: stri
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   topBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.divider },
   topAction: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
@@ -200,13 +196,13 @@ const styles = StyleSheet.create({
   menuSubtitle: { color: COLORS.secondary, fontSize: 11 },
   menuBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12 },
   menuBadgeText: { fontSize: 11, fontWeight: '700' },
-  logoutButton: { minHeight: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, marginHorizontal: 12, marginTop: 15, padding: 13, borderWidth: 1, borderColor: '#E539354D', borderRadius: 12, backgroundColor: COLORS.card },
+  logoutButton: { minHeight: 50, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, marginHorizontal: 12, marginTop: 15, padding: 13, borderWidth: 1, borderColor: '#7A1F3D4D', borderRadius: 12, backgroundColor: COLORS.card },
   logoutLabel: { color: COLORS.red, fontSize: 14, fontWeight: '600' },
   footer: { marginTop: 20, paddingVertical: 12, color: COLORS.tertiary, fontSize: 11, textAlign: 'center' },
   dialogRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   dialogScrim: { ...StyleSheet.absoluteFill, backgroundColor: '#00000099' },
   dialog: { width: '100%', maxWidth: 380, alignItems: 'center', padding: 22, borderRadius: 16, backgroundColor: COLORS.card },
-  dialogIcon: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: 28, backgroundColor: '#E5393526' },
+  dialogIcon: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center', borderRadius: 28, backgroundColor: '#7A1F3D26' },
   dialogTitle: { marginTop: 14, color: COLORS.text, fontSize: 18, fontWeight: '700' },
   dialogMessage: { marginTop: 8, color: COLORS.secondary, fontSize: 13, lineHeight: 20, textAlign: 'center' },
   dialogActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10, alignSelf: 'stretch', marginTop: 20 },

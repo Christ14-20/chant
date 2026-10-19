@@ -1,3 +1,4 @@
+import { createThemedStyles } from '@/utils/themed-styles';
 import { useState, useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, Alert } from 'react-native';
 import { SymbolView } from 'expo-symbols';
@@ -10,16 +11,16 @@ import { useResponsive } from '@/hooks/use-responsive';
 import { goBackSafely } from '@/utils/navigation';
 
 const CATEGORIES = [
-  { key: 'matin', label: 'Matin', icon: 'sun.max.fill', color: '#FF9500' },
-  { key: 'midi', label: 'Midi', icon: 'sun.min.fill', color: '#FFCC00' },
-  { key: 'soir', label: 'Soir', icon: 'moon.fill', color: '#5856D6' },
-  { key: 'mariale', label: 'Mariale', icon: 'star.fill', color: '#AF52DE' },
-  { key: 'intention', label: 'Intention', icon: 'heart.fill', color: '#FF2D55' },
-  { key: 'oraison', label: 'Oraison', icon: 'hands.sparkles', color: '#34C759' },
-  { key: 'autre', label: 'Autre', icon: 'ellipsis.circle', color: '#8E8E93' },
+  { key: 'matin', label: 'Matin', icon: 'sun.max.fill', color: '#7A1F3D' },
+  { key: 'midi', label: 'Midi', icon: 'sun.min.fill', color: '#7A1F3D' },
+  { key: 'soir', label: 'Soir', icon: 'moon.fill', color: '#0A1F44' },
+  { key: 'mariale', label: 'Mariale', icon: 'star.fill', color: '#7A1F3D' },
+  { key: 'intention', label: 'Intention', icon: 'heart.fill', color: '#7A1F3D' },
+  { key: 'oraison', label: 'Oraison', icon: 'hands.sparkles', color: '#7A1F3D' },
+  { key: 'autre', label: 'Autre', icon: 'ellipsis.circle', color: '#0A1F44' },
 ] as const;
 
-const LANGUES = ['fr', 'soussou', 'poular', 'malinke', 'kissi', 'guerze', 'toma', 'en'] as const;
+const LANGUES = ['fr', 'la', 'es', 'soussou', 'poular', 'malinke', 'kissi', 'guerze', 'toma', 'en'] as const;
 
 export default function NouvellePriereScreen() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function NouvellePriereScreen() {
         <ThemedView style={[styles.header, { paddingHorizontal: pad.h, paddingTop: pad.top }]}>
           <ThemedView style={styles.headerRow}>
             <Pressable onPress={goBackSafely} style={styles.backBtn}>
-              <SymbolView name="xmark" size={18} tintColor="#8E8E93" />
+              <SymbolView name="xmark" size={18} tintColor="#0A1F44" />
             </Pressable>
             <ThemedText style={[styles.title, { fontSize: fs.xl }]}>Nouvelle prière</ThemedText>
             <Pressable
@@ -90,7 +91,7 @@ export default function NouvellePriereScreen() {
                   style={[styles.catCard, { backgroundColor: theme.backgroundElement, borderColor: theme.border }, categorie === cat.key && styles.catCardActive, categorie === cat.key && { borderColor: cat.color }]}
                   onPress={() => { setCategorie(cat.key); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
                 >
-                  <SymbolView name={cat.icon as any} size={20} tintColor={categorie === cat.key ? cat.color : '#8E8E93'} />
+                  <SymbolView name={cat.icon as any} size={20} tintColor={categorie === cat.key ? cat.color : '#0A1F44'} />
                   <ThemedText style={[styles.catLabel, { fontSize: fs.sm }, categorie === cat.key && { color: cat.color }]}>
                     {cat.label}
                   </ThemedText>
@@ -139,16 +140,16 @@ export default function NouvellePriereScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   container: { flex: 1 },
   scroll: { flex: 1 },
   header: { paddingBottom: 16 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   backBtn: { padding: 8, borderRadius: 20 },
   title: { fontWeight: '700' },
-  saveBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: '#208AEF' },
+  saveBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, backgroundColor: '#0A1F44' },
   saveBtnDisabled: { opacity: 0.5 },
-  saveBtnText: { color: '#FFF', fontWeight: '600' },
+  saveBtnText: { color: '#FFFFFF', fontWeight: '600' },
   form: { gap: 24 },
   field: { gap: 10 },
   fieldLabel: { fontWeight: '600', opacity: 0.6, textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1.5,
   },
-  catCardActive: { backgroundColor: 'rgba(32,138,239,0.08)' },
+  catCardActive: { backgroundColor: 'rgba(10,31,68,0.08)' },
   catLabel: { fontWeight: '500', opacity: 0.8 },
   chips: { flexDirection: 'row', gap: 8, paddingBottom: 4 },
   chip: {
@@ -178,8 +179,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
   },
-  chipActive: { backgroundColor: 'rgba(32,138,239,0.15)', borderColor: '#208AEF' },
+  chipActive: { backgroundColor: 'rgba(10,31,68,0.15)', borderColor: '#0A1F44' },
   chipText: { opacity: 0.7, fontWeight: '500' },
-  chipTextActive: { color: '#208AEF', opacity: 1, fontWeight: '600' },
+  chipTextActive: { color: '#0A1F44', opacity: 1, fontWeight: '600' },
   bottomPad: { height: 80 },
 });

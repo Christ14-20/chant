@@ -1,8 +1,9 @@
+import { createThemedStyles } from '@/utils/themed-styles';
 import { Pressable, StyleSheet } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { ActionColors, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import type { Priere } from '@/types';
 
@@ -14,10 +15,10 @@ const MOMENT_ICONS: Record<string, string> = {
 };
 
 const MOMENT_COLORS: Record<string, string> = {
-  matin: '#FF9500',
-  midi: '#FFCC00',
-  soir: '#5856D6',
-  nuit: '#8E8E93',
+  matin: '#7A1F3D',
+  midi: '#7A1F3D',
+  soir: '#0A1F44',
+  nuit: '#0A1F44',
 };
 
 interface PriereCardProps {
@@ -33,7 +34,7 @@ export function PriereCard({ priere, onPress, onFavoritePress, isFavorite, style
   const theme = useTheme();
   const momentKey = priere.moment_jour || priere.categorie;
   const icon = MOMENT_ICONS[momentKey] || 'heart';
-  const color = MOMENT_COLORS[momentKey] || '#208AEF';
+  const color = MOMENT_COLORS[momentKey] || '#0A1F44';
 
   return (
     <Pressable
@@ -61,7 +62,7 @@ export function PriereCard({ priere, onPress, onFavoritePress, isFavorite, style
             <SymbolView
               name={isFavorite ? 'heart.fill' : 'heart'}
               size={20}
-              tintColor={isFavorite ? '#E91E63' : '#8E8E93'}
+              tintColor={isFavorite ? ActionColors.primary : '#0A1F44'}
             />
           </Pressable>
         )}
@@ -73,7 +74,7 @@ export function PriereCard({ priere, onPress, onFavoritePress, isFavorite, style
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   card: {
     marginHorizontal: Spacing.four,
     marginVertical: Spacing.two,

@@ -1,11 +1,15 @@
+import { useTheme } from '@/hooks/use-theme';
+import { createThemedStyles } from '@/utils/themed-styles';
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { goBackSafely } from '@/utils/navigation';
+import { useAppStore } from '@/store/useAppStore';
+import { ActionColors } from '@/constants/theme';
 
-const COLORS = { background: '#F9FAFB', surface: '#FFFFFF', navy: '#0A1F44', gold: '#D4AF37', text: '#111827', muted: '#6B7280', border: '#E5E7EB', blue: '#1877F2', rose: '#D96A8E', orange: '#E67E22', system: '#6B7689' };
+const COLORS = { background: '#FFFFFF', surface: '#FFFFFF', navy: '#0A1F44', gold: '#7A1F3D', text: '#0A1F44', muted: '#0A1F44', border: '#FFFFFF', blue: '#0A1F44', rose: '#7A1F3D', orange: '#7A1F3D', system: '#0A1F44' };
 
 type NotificationType = 'CHANT' | 'MESSE' | 'ANNONCE' | 'PRIERE' | 'SYSTEME';
 type NotificationItem = { id: string; title: string; message: string; date: string; isRead: boolean; type: NotificationType };
@@ -14,20 +18,11 @@ type Tab = 'Toutes' | 'Chants' | 'Messes' | 'Annonces';
 const TABS: Tab[] = ['Toutes', 'Chants', 'Messes', 'Annonces'];
 const TYPE_STYLE: Record<NotificationType, { label: string; icon: string; color: string }> = {
   CHANT: { label: 'Chant', icon: 'music-note', color: COLORS.blue },
-  MESSE: { label: 'Messe', icon: 'church', color: '#D4A24C' },
+  MESSE: { label: 'Messe', icon: 'church', color: '#7A1F3D' },
   ANNONCE: { label: 'Annonce', icon: 'bullhorn-outline', color: COLORS.orange },
   PRIERE: { label: 'Prière', icon: 'hands-pray', color: COLORS.rose },
   SYSTEME: { label: 'Système', icon: 'cog-outline', color: COLORS.system },
 };
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  { id: '1', title: 'Nouveau chant disponible', message: '« Reine de la Paix » est prêt à être écouté.', date: 'Il y a 2h', isRead: false, type: 'CHANT' },
-  { id: '2', title: 'Messe de dimanche', message: 'La préparation de la messe est en ligne. 8 chants, 3 lectures.', date: 'Il y a 5h', isRead: false, type: 'MESSE' },
-  { id: '3', title: 'Intention de prière', message: 'Marie Louise a partagé une intention pour sa grand-mère.', date: 'Il y a 8h', isRead: false, type: 'PRIERE' },
-  { id: '4', title: 'Rappel : Répétition', message: 'Répétition générale samedi 16h30 à Sainte Marie.', date: 'Hier', isRead: true, type: 'ANNONCE' },
-  { id: '5', title: 'Ton chant a été publié', message: '« Ave Maria » est maintenant visible par la communauté.', date: 'Il y a 2 jours', isRead: true, type: 'CHANT' },
-  { id: '6', title: 'Mise à jour disponible', message: 'Version 1.2 : nouvelles fonctionnalités et corrections.', date: 'Il y a 5 jours', isRead: true, type: 'SYSTEME' },
-];
-
 function groupForDate(date: string): string {
   if (date.toLocaleLowerCase().includes('il y a') && !date.toLocaleLowerCase().includes('jour')) return "Aujourd'hui";
   if (date.toLocaleLowerCase().includes('hier') || date.toLocaleLowerCase().includes('jour')) return 'Cette semaine';
@@ -35,8 +30,10 @@ function groupForDate(date: string): string {
 }
 
 export default function KotlinNotificationsScreen() {
+  useTheme();
   const router = useRouter();
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const notificationsEnabled = useAppStore((state) => state.notificationsEnabled);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [selectedTab, setSelectedTab] = useState<Tab>('Toutes');
   const [menuId, setMenuId] = useState<string | null>(null);
 
@@ -70,21 +67,31 @@ export default function KotlinNotificationsScreen() {
           <MaterialCommunityIcons name="arrow-left" size={21} color={COLORS.navy} />
         </Pressable>
         <Text style={styles.topTitle}>Notifications</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Tout marquer comme lu" onPress={markAllRead} style={styles.markAllButton}>
-          <MaterialCommunityIcons name="check-all" size={22} color={COLORS.navy} />
-        </Pressable>
+        {notificationsEnabled && (
+          <Pressable accessibilityRole="button" accessibilityLabel="Tout marquer comme lu" onPress={markAllRead} style={styles.markAllButton}>
+            <MaterialCommunityIcons name="check-all" size={22} color={COLORS.navy} />
+          </Pressable>
+        )}
       </View>
 
-      <View style={styles.tabs}>
-        {TABS.map((tab) => (
-          <Pressable key={tab} onPress={() => setSelectedTab(tab)} style={[styles.tab, selectedTab === tab && styles.tabActive]}>
-            <Text style={[styles.tabLabel, selectedTab === tab && styles.tabLabelActive]}>{tab}</Text>
-          </Pressable>
-        ))}
-      </View>
+      {notificationsEnabled && (
+        <View style={styles.tabs}>
+          {TABS.map((tab) => (
+            <Pressable key={tab} onPress={() => setSelectedTab(tab)} style={[styles.tab, selectedTab === tab && styles.tabActive]}>
+              <Text style={[styles.tabLabel, selectedTab === tab && styles.tabLabelActive]}>{tab}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.content}>
-        {grouped.length === 0 ? (
+        {!notificationsEnabled ? (
+          <View style={styles.emptyState}>
+            <MaterialCommunityIcons name="bell-off-outline" size={46} color={`${COLORS.muted}80`} />
+            <Text style={styles.emptyTitle}>Notifications désactivées</Text>
+            <Text style={styles.emptySubtitle}>Réactivez les notifications dans Réglages pour consulter les alertes de l’application.</Text>
+          </View>
+        ) : grouped.length === 0 ? (
           <View style={styles.emptyState}>
             <MaterialCommunityIcons name="bell-outline" size={46} color={`${COLORS.muted}80`} />
             <Text style={styles.emptyTitle}>Aucune notification</Text>
@@ -110,7 +117,7 @@ export default function KotlinNotificationsScreen() {
               <Text style={styles.menuLabel}>Marquer comme lu</Text>
             </Pressable>
             <Pressable onPress={() => { if (menuId) removeNotification(menuId); setMenuId(null); }} style={styles.menuOption}>
-              <MaterialCommunityIcons name="delete-outline" size={20} color="#E53935" />
+              <MaterialCommunityIcons name="delete-outline" size={20} color={ActionColors.danger} />
               <Text style={[styles.menuLabel, styles.deleteLabel]}>Supprimer</Text>
             </Pressable>
           </View>
@@ -148,7 +155,7 @@ function NotificationCard({ item, onRead, onMenu }: { item: NotificationItem; on
   );
 }
 
-const styles = StyleSheet.create({
+const styles = createThemedStyles({
   safeArea: { flex: 1, backgroundColor: COLORS.background },
   topBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.border },
   backButton: { width: 40, height: 42, alignItems: 'center', justifyContent: 'center' },
@@ -189,5 +196,5 @@ const styles = StyleSheet.create({
   menuSheet: { padding: 10, borderRadius: 14, backgroundColor: COLORS.surface },
   menuOption: { minHeight: 46, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 10 },
   menuLabel: { color: COLORS.text, fontSize: 13, fontWeight: '600' },
-  deleteLabel: { color: '#E53935' },
+  deleteLabel: { color: '#7A1F3D' },
 });

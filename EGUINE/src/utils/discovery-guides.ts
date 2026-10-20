@@ -65,7 +65,7 @@ export function normalizeDiscoveryPath(pathname: string): string {
 
 export function getDiscoveryGuide(pathname: string): DiscoveryGuide | undefined {
   const path = normalizeDiscoveryPath(pathname);
-  if (path === '/home' || path === '/') return DISCOVERY_GUIDES[0];
+  if (path === '/home' || path === '/') return DISCOVERY_GUIDES.find((guide) => guide.id === 'home');
   if (path === '/chants') return DISCOVERY_GUIDES.find((guide) => guide.id === 'catalog');
   if (path === '/messe') return DISCOVERY_GUIDES.find((guide) => guide.id === 'mass');
   if (path === '/favoris') return DISCOVERY_GUIDES.find((guide) => guide.id === 'favorites');
